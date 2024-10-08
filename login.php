@@ -14,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->execute(['username' => $username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Check if user exists and password matches
-    if ($user && $user['password'] === $password) {
+    // Check if user exists and password matches using password_verify
+    if ($user && password_verify($password, $user['password'])) {
         $_SESSION['loggedin'] = true;
         $_SESSION['username'] = $user['username'];
         $_SESSION['role'] = $user['role'];

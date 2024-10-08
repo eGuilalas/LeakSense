@@ -64,7 +64,7 @@ session_start();
 <div class="container">
     <h1>Welcome to LeakSense</h1>
     <p>Your safety, our priority. Monitor gas levels with ease.</p>
-    <a href="login.php" class="login-button">Login</a>
+    <a href="login.php" class="login-buttonzxc">Login</a>
     <div class="footer">
         <p>&copy; <?php echo date("Y"); ?> LeakSense</p>
     </div>

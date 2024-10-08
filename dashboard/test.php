@@ -1,5 +1,4 @@
 <?php
-// Ensure the session is started and user is logged in
 session_start();
 
 // Check if the user is logged in, and retrieve the username and role from the session
@@ -18,18 +17,23 @@ $role = $_SESSION['role']; // Get the role from the session
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collapsible Dashboard Layout</title>
+    <title>Professional Dashboard</title>
+
+    <!-- Google Font for Corporate Look -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* Base styles for body */
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f9;
+            background-color: #f5f7fa;
             color: #333;
         }
 
-        /* Dashboard Layout */
+        /* Dashboard layout */
         .dashboard {
             display: flex;
             height: 100vh;
@@ -39,12 +43,13 @@ $role = $_SESSION['role']; // Get the role from the session
         /* Sidebar styling */
         .sidebar {
             width: 250px;
-            background-color: #1e1e2f;
+            background-color: #1a1f36;
             color: white;
             display: flex;
             flex-direction: column;
             padding-top: 20px;
             transition: width 0.3s;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
 
         .sidebar.collapsed {
@@ -68,10 +73,11 @@ $role = $_SESSION['role']; // Get the role from the session
         }
 
         .sidebar h2 {
-            color: #b2b3bf;
-            font-size: 16px;
+            color: #b0b3c0;
+            font-size: 14px;
             text-transform: uppercase;
             margin-left: 20px;
+            font-weight: 500;
             transition: opacity 0.3s;
         }
 
@@ -84,9 +90,11 @@ $role = $_SESSION['role']; // Get the role from the session
             display: flex;
             align-items: center;
             text-decoration: none;
-            color: #b2b3bf;
+            color: #b0b3c0;
             font-size: 16px;
+            font-weight: 500;
             transition: background 0.3s, padding-left 0.3s;
+            position: relative;
         }
 
         .sidebar a .icon {
@@ -105,7 +113,8 @@ $role = $_SESSION['role']; // Get the role from the session
         }
 
         .sidebar a:hover {
-            background-color: #35354e;
+            background-color: #2d3246;
+            color: #fff;
         }
 
         .menu-section {
@@ -123,6 +132,7 @@ $role = $_SESSION['role']; // Get the role from the session
             padding: 20px;
             overflow-y: auto;
             transition: margin-left 0.3s;
+            background-color: #f5f7fa;
         }
 
         .sidebar.collapsed ~ .main-content {
@@ -131,13 +141,15 @@ $role = $_SESSION['role']; // Get the role from the session
 
         h1 {
             text-align: center;
-            color: #4a90e2;
+            color: #1a1f36;
             margin-bottom: 20px;
+            font-weight: 500;
         }
 
         h2 {
             color: #333;
             margin-bottom: 10px;
+            font-weight: 500;
         }
 
         .container {
@@ -166,7 +178,6 @@ $role = $_SESSION['role']; // Get the role from the session
         table {
             width: 100%;
             border-collapse: collapse;
-            position: relative;
         }
 
         th, td {
@@ -177,9 +188,6 @@ $role = $_SESSION['role']; // Get the role from the session
 
         th {
             background-color: #f0f0f0;
-            position: sticky;
-            top: 0;
-            z-index: 10;
         }
 
         .status-detected {
@@ -190,6 +198,21 @@ $role = $_SESSION['role']; // Get the role from the session
         .status-not-detected {
             color: green;
             font-weight: normal;
+        }
+
+        /* Button styling */
+        button {
+            background-color: #4a90e2;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #357ABD;
         }
 
     </style>
@@ -213,7 +236,7 @@ $role = $_SESSION['role']; // Get the role from the session
             </div>
 
             <div class="menu-section">
-                <h2>Welcome</h2>
+                <h2>Admin</h2>
                 <a href="#"><span class="icon">👤</span><span style="color: red;"><?php echo htmlspecialchars($username); ?></span> - <?php echo htmlspecialchars($role); ?></a>
             </div>
 
