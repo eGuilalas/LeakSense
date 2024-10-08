@@ -1,4 +1,5 @@
 <?php
+// Ensure the session is started and user is logged in
 session_start();
 
 // Check if the user is logged in, and retrieve the username and role from the session
@@ -17,23 +18,18 @@ $role = $_SESSION['role']; // Get the role from the session
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Dashboard</title>
-
-    <!-- Google Font for Corporate Look -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-
+    <title>Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Base styles for body */
         body {
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f5f7fa;
+            background-color: #f4f4f9;
             color: #333;
         }
 
-        /* Dashboard layout */
+        /* Dashboard Layout */
         .dashboard {
             display: flex;
             height: 100vh;
@@ -43,20 +39,18 @@ $role = $_SESSION['role']; // Get the role from the session
         /* Sidebar styling */
         .sidebar {
             width: 250px;
-            background-color: #1a1f36;
+            background-color: #182239;
             color: white;
             display: flex;
             flex-direction: column;
             padding-top: 20px;
             transition: width 0.3s;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
         }
 
         .sidebar.collapsed {
             width: 60px;
         }
 
-        /* Hamburger Menu inside sidebar */
         .hamburger {
             font-size: 24px;
             background-color: transparent;
@@ -73,11 +67,10 @@ $role = $_SESSION['role']; // Get the role from the session
         }
 
         .sidebar h2 {
-            color: #b0b3c0;
-            font-size: 14px;
+            color: #b2b3bf;
+            font-size: 16px;
             text-transform: uppercase;
             margin-left: 20px;
-            font-weight: 500;
             transition: opacity 0.3s;
         }
 
@@ -90,11 +83,9 @@ $role = $_SESSION['role']; // Get the role from the session
             display: flex;
             align-items: center;
             text-decoration: none;
-            color: #b0b3c0;
+            color: #b2b3bf;
             font-size: 16px;
-            font-weight: 500;
             transition: background 0.3s, padding-left 0.3s;
-            position: relative;
         }
 
         .sidebar a .icon {
@@ -113,8 +104,7 @@ $role = $_SESSION['role']; // Get the role from the session
         }
 
         .sidebar a:hover {
-            background-color: #2d3246;
-            color: #fff;
+            background-color: #35354e;
         }
 
         .menu-section {
@@ -132,7 +122,6 @@ $role = $_SESSION['role']; // Get the role from the session
             padding: 20px;
             overflow-y: auto;
             transition: margin-left 0.3s;
-            background-color: #f5f7fa;
         }
 
         .sidebar.collapsed ~ .main-content {
@@ -141,15 +130,13 @@ $role = $_SESSION['role']; // Get the role from the session
 
         h1 {
             text-align: center;
-            color: #1a1f36;
+            color: #4a90e2;
             margin-bottom: 20px;
-            font-weight: 500;
         }
 
         h2 {
             color: #333;
             margin-bottom: 10px;
-            font-weight: 500;
         }
 
         .container {
@@ -161,10 +148,52 @@ $role = $_SESSION['role']; // Get the role from the session
             border-radius: 8px;
         }
 
-        canvas {
-            max-width: 100%;
-            border-radius: 8px;
-            background-color: #f9f9f9;
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            flex: 1;
+            margin: 0 10px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-box .title {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .stat-box .value {
+            font-size: 32px;
+            color: #4a90e2;
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .status-indicator span {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .status-online {
+            color: green;
+        }
+
+        .status-offline {
+            color: red;
         }
 
         .table-container {
@@ -178,6 +207,7 @@ $role = $_SESSION['role']; // Get the role from the session
         table {
             width: 100%;
             border-collapse: collapse;
+            position: relative;
         }
 
         th, td {
@@ -188,6 +218,9 @@ $role = $_SESSION['role']; // Get the role from the session
 
         th {
             background-color: #f0f0f0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .status-detected {
@@ -198,21 +231,6 @@ $role = $_SESSION['role']; // Get the role from the session
         .status-not-detected {
             color: green;
             font-weight: normal;
-        }
-
-        /* Button styling */
-        button {
-            background-color: #4a90e2;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #357ABD;
         }
 
     </style>
@@ -236,7 +254,7 @@ $role = $_SESSION['role']; // Get the role from the session
             </div>
 
             <div class="menu-section">
-                <h2>Admin</h2>
+                <h2>Welcome</h2>
                 <a href="#"><span class="icon">👤</span><span style="color: red;"><?php echo htmlspecialchars($username); ?></span> - <?php echo htmlspecialchars($role); ?></a>
             </div>
 
@@ -249,6 +267,23 @@ $role = $_SESSION['role']; // Get the role from the session
 
         <div class="main-content" id="main-content">
             <h1>Live Gas Readings Graph</h1>
+            <div class="stats-container">
+                <div class="stat-box">
+                    <div class="title">GS1 Status</div>
+                    <div class="status-indicator">
+                        <div id="gs1-status-icon" class="status-online">✔</div>
+                        <span id="gs1-status-text" class="status-online">Online</span>
+                    </div>
+                </div>
+                <div class="stat-box">
+                    <div class="title">GS2 Status</div>
+                    <div class="status-indicator">
+                        <div id="gs2-status-icon" class="status-online">✔</div>
+                        <span id="gs2-status-text" class="status-online">Online</span>
+                    </div>
+                </div>
+            </div>
+
             <div class="container">
                 <h2>Latest Gas Readings</h2>
                 <p id="latest-readings">Fetching latest readings...</p>
@@ -283,6 +318,49 @@ $role = $_SESSION['role']; // Get the role from the session
             sidebar.classList.toggle('collapsed');
             document.body.classList.toggle('collapsed');
         }
+
+        // Update status indicators
+        function updateStatus(gs1Online, gs2Online) {
+            const gs1StatusIcon = document.getElementById('gs1-status-icon');
+            const gs1StatusText = document.getElementById('gs1-status-text');
+            const gs2StatusIcon = document.getElementById('gs2-status-icon');
+            const gs2StatusText = document.getElementById('gs2-status-text');
+
+            if (gs1Online) {
+                gs1StatusIcon.classList.remove('status-offline');
+                gs1StatusIcon.classList.add('status-online');
+                gs1StatusIcon.innerHTML = '✔';
+                gs1StatusText.classList.remove('status-offline');
+                gs1StatusText.classList.add('status-online');
+                gs1StatusText.innerHTML = 'Online';
+            } else {
+                gs1StatusIcon.classList.remove('status-online');
+                gs1StatusIcon.classList.add('status-offline');
+                gs1StatusIcon.innerHTML = '✘';
+                gs1StatusText.classList.remove('status-online');
+                gs1StatusText.classList.add('status-offline');
+                gs1StatusText.innerHTML = 'Offline';
+            }
+
+            if (gs2Online) {
+                gs2StatusIcon.classList.remove('status-offline');
+                gs2StatusIcon.classList.add('status-online');
+                gs2StatusIcon.innerHTML = '✔';
+                gs2StatusText.classList.remove('status-offline');
+                gs2StatusText.classList.add('status-online');
+                gs2StatusText.innerHTML = 'Online';
+            } else {
+                gs2StatusIcon.classList.remove('status-online');
+                gs2StatusIcon.classList.add('status-offline');
+                gs2StatusIcon.innerHTML = '✘';
+                gs2StatusText.classList.remove('status-online');
+                gs2StatusText.classList.add('status-offline');
+                gs2StatusText.innerHTML = 'Offline';
+            }
+        }
+
+        // Example of setting the status (true = online, false = offline)
+        updateStatus(true, false);  // GS1 is online, GS2 is offline
 
         // Chart for gas levels
         const ctxGasLevel = document.getElementById('gasLevelChart').getContext('2d');

@@ -149,6 +149,31 @@ $role = $_SESSION['role']; // Get the role from the session
             border-radius: 8px;
         }
 
+        .status-container {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+        }
+
+        .status i {
+            margin-left: 8px;
+            font-size: 18px;
+        }
+
+        .online {
+            color: green;
+        }
+
+        .offline {
+            color: red;
+        }
+
         canvas {
             max-width: 100%;
             border-radius: 8px;
@@ -227,6 +252,12 @@ $role = $_SESSION['role']; // Get the role from the session
         <div class="main-content" id="main-content">
             <h1>Live Gas Readings Graph</h1>
             <div class="container">
+                <!-- Device status section for GS1 and GS2 -->
+                <div class="status-container">
+                    <div class="status">GS1 Status: <i id="gs1-status" class="offline">Offline</i></div>
+                    <div class="status">GS2 Status: <i id="gs2-status" class="offline">Offline</i></div>
+                </div>
+
                 <h2>Latest Gas Readings</h2>
                 <p id="latest-readings">Fetching latest readings...</p>
                 <canvas id="gasLevelChart" width="600" height="300"></canvas>
@@ -259,6 +290,14 @@ $role = $_SESSION['role']; // Get the role from the session
             const sidebar = document.getElementById('sidebar');
             sidebar.classList.toggle('collapsed');
             document.body.classList.toggle('collapsed');
+        }
+
+        // Function to check if a device is online (i.e., last reading is within the last minute)
+        function isDeviceOnline(timestamp) {
+            const currentTime = new Date().getTime();
+            const readingTime = new Date(timestamp).getTime();
+            const timeDiff = (currentTime - readingTime) / 1000; // in seconds
+            return timeDiff <= 60; // Consider online if the last reading was within the last 60 seconds
         }
 
         // Chart for gas levels
@@ -354,6 +393,17 @@ $role = $_SESSION['role']; // Get the role from the session
                         </td>
                         <td>${new Date(reading.timestamp).toLocaleString()}</td>
                     `;
+
+                    // Update the online/offline status for GS1 and GS2
+                    if (reading.device_id === 'GS1') {
+                        const gs1StatusElement = document.getElementById('gs1-status');
+                        gs1StatusElement.className = isDeviceOnline(reading.timestamp) ? 'online' : 'offline';
+                        gs1StatusElement.textContent = isDeviceOnline(reading.timestamp) ? 'Online ✔️' : 'Offline ❌';
+                    } else if (reading.device_id === 'GS2') {
+                        const gs2StatusElement = document.getElementById('gs2-status');
+                        gs2StatusElement.className = isDeviceOnline(reading.timestamp) ? 'online' : 'offline';
+                        gs2StatusElement.textContent = isDeviceOnline(reading.timestamp) ? 'Online ✔️' : 'Offline ❌';
+                    }
                 });
 
                 // Scroll to the bottom of the table to show the latest reading
