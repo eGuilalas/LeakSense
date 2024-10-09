@@ -18,7 +18,7 @@ $role = $_SESSION['role']; // Get the role from the session
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Professional Dashboard Layout</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -39,7 +39,7 @@ $role = $_SESSION['role']; // Get the role from the session
         /* Sidebar styling */
         .sidebar {
             width: 250px;
-            background-color: #182239;
+            background-color: #1e1e2f;
             color: white;
             display: flex;
             flex-direction: column;
@@ -51,6 +51,7 @@ $role = $_SESSION['role']; // Get the role from the session
             width: 60px;
         }
 
+        /* Hamburger Menu inside sidebar */
         .hamburger {
             font-size: 24px;
             background-color: transparent;
@@ -119,9 +120,10 @@ $role = $_SESSION['role']; // Get the role from the session
         /* Main content styling */
         .main-content {
             flex: 1;
-            padding: 20px;
+            padding: 30px;
             overflow-y: auto;
             transition: margin-left 0.3s;
+            background-color: #f4f4f9;
         }
 
         .sidebar.collapsed ~ .main-content {
@@ -131,12 +133,15 @@ $role = $_SESSION['role']; // Get the role from the session
         h1 {
             text-align: center;
             color: #4a90e2;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            font-size: 2rem;
         }
 
         h2 {
             color: #333;
             margin-bottom: 10px;
+            font-size: 1.4rem;
+            font-weight: 600;
         }
 
         .container {
@@ -145,55 +150,39 @@ $role = $_SESSION['role']; // Get the role from the session
             padding: 20px;
             background: white;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            border-radius: 10px;
         }
 
-        .stats-container {
+        .status-container {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
             margin-bottom: 20px;
         }
 
-        .stat-box {
-            flex: 1;
-            margin: 0 10px;
-            background: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-box .title {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 10px;
-        }
-
-        .stat-box .value {
-            font-size: 32px;
-            color: #4a90e2;
-            font-weight: bold;
-        }
-
-        .status-indicator {
+        .status {
             display: flex;
             align-items: center;
-            justify-content: center;
-            margin-top: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
-        .status-indicator span {
-            margin-left: 10px;
-            font-weight: bold;
+        .status i {
+            margin-left: 8px;
+            font-size: 18px;
         }
 
-        .status-online {
+        .online {
             color: green;
         }
 
-        .status-offline {
+        .offline {
             color: red;
+        }
+
+        canvas {
+            max-width: 100%;
+            border-radius: 8px;
+            background-color: #f9f9f9;
         }
 
         .table-container {
@@ -214,6 +203,7 @@ $role = $_SESSION['role']; // Get the role from the session
             border: 1px solid #e0e0e0;
             padding: 10px;
             text-align: center;
+            font-size: 1rem;
         }
 
         th {
@@ -267,24 +257,13 @@ $role = $_SESSION['role']; // Get the role from the session
 
         <div class="main-content" id="main-content">
             <h1>Live Gas Readings Graph</h1>
-            <div class="stats-container">
-                <div class="stat-box">
-                    <div class="title">GS1 Status</div>
-                    <div class="status-indicator">
-                        <div id="gs1-status-icon" class="status-online">✔</div>
-                        <span id="gs1-status-text" class="status-online">Online</span>
-                    </div>
-                </div>
-                <div class="stat-box">
-                    <div class="title">GS2 Status</div>
-                    <div class="status-indicator">
-                        <div id="gs2-status-icon" class="status-online">✔</div>
-                        <span id="gs2-status-text" class="status-online">Online</span>
-                    </div>
-                </div>
-            </div>
-
             <div class="container">
+                <!-- Device status section for GS1 and GS2 -->
+                <div class="status-container">
+                    <div class="status">GS1 Status: <i id="gs1-status" class="offline">Offline</i></div>
+                    <div class="status">GS2 Status: <i id="gs2-status" class="offline">Offline</i></div>
+                </div>
+
                 <h2>Latest Gas Readings</h2>
                 <p id="latest-readings">Fetching latest readings...</p>
                 <canvas id="gasLevelChart" width="600" height="300"></canvas>
@@ -319,48 +298,13 @@ $role = $_SESSION['role']; // Get the role from the session
             document.body.classList.toggle('collapsed');
         }
 
-        // Update status indicators
-        function updateStatus(gs1Online, gs2Online) {
-            const gs1StatusIcon = document.getElementById('gs1-status-icon');
-            const gs1StatusText = document.getElementById('gs1-status-text');
-            const gs2StatusIcon = document.getElementById('gs2-status-icon');
-            const gs2StatusText = document.getElementById('gs2-status-text');
-
-            if (gs1Online) {
-                gs1StatusIcon.classList.remove('status-offline');
-                gs1StatusIcon.classList.add('status-online');
-                gs1StatusIcon.innerHTML = '✔';
-                gs1StatusText.classList.remove('status-offline');
-                gs1StatusText.classList.add('status-online');
-                gs1StatusText.innerHTML = 'Online';
-            } else {
-                gs1StatusIcon.classList.remove('status-online');
-                gs1StatusIcon.classList.add('status-offline');
-                gs1StatusIcon.innerHTML = '✘';
-                gs1StatusText.classList.remove('status-online');
-                gs1StatusText.classList.add('status-offline');
-                gs1StatusText.innerHTML = 'Offline';
-            }
-
-            if (gs2Online) {
-                gs2StatusIcon.classList.remove('status-offline');
-                gs2StatusIcon.classList.add('status-online');
-                gs2StatusIcon.innerHTML = '✔';
-                gs2StatusText.classList.remove('status-offline');
-                gs2StatusText.classList.add('status-online');
-                gs2StatusText.innerHTML = 'Online';
-            } else {
-                gs2StatusIcon.classList.remove('status-online');
-                gs2StatusIcon.classList.add('status-offline');
-                gs2StatusIcon.innerHTML = '✘';
-                gs2StatusText.classList.remove('status-online');
-                gs2StatusText.classList.add('status-offline');
-                gs2StatusText.innerHTML = 'Offline';
-            }
+        // Function to check if a device is online (i.e., last reading is within the last minute)
+        function isDeviceOnline(timestamp) {
+            const currentTime = new Date().getTime();
+            const readingTime = new Date(timestamp).getTime();
+            const timeDiff = (currentTime - readingTime) / 1000; // in seconds
+            return timeDiff <= 60; // Consider online if the last reading was within the last 60 seconds
         }
-
-        // Example of setting the status (true = online, false = offline)
-        updateStatus(true, false);  // GS1 is online, GS2 is offline
 
         // Chart for gas levels
         const ctxGasLevel = document.getElementById('gasLevelChart').getContext('2d');
@@ -455,6 +399,17 @@ $role = $_SESSION['role']; // Get the role from the session
                         </td>
                         <td>${new Date(reading.timestamp).toLocaleString()}</td>
                     `;
+
+                    // Update the online/offline status for GS1 and GS2
+                    if (reading.device_id === 'GS1') {
+                        const gs1StatusElement = document.getElementById('gs1-status');
+                        gs1StatusElement.className = isDeviceOnline(reading.timestamp) ? 'online' : 'offline';
+                        gs1StatusElement.textContent = isDeviceOnline(reading.timestamp) ? 'Online ✔️' : 'Offline ❌';
+                    } else if (reading.device_id === 'GS2') {
+                        const gs2StatusElement = document.getElementById('gs2-status');
+                        gs2StatusElement.className = isDeviceOnline(reading.timestamp) ? 'online' : 'offline';
+                        gs2StatusElement.textContent = isDeviceOnline(reading.timestamp) ? 'Online ✔️' : 'Offline ❌';
+                    }
                 });
 
                 // Scroll to the bottom of the table to show the latest reading
