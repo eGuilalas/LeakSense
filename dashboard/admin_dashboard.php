@@ -18,7 +18,7 @@ $role = $_SESSION['role']; // Get the role from the session
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collapsible Dashboard Layout</title>
+    <title>LeakSense</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -297,7 +297,7 @@ $role = $_SESSION['role']; // Get the role from the session
             const currentTime = new Date().getTime();
             const readingTime = new Date(timestamp).getTime();
             const timeDiff = (currentTime - readingTime) / 1000; // in seconds
-            return timeDiff <= 60; // Consider online if the last reading was within the last 60 seconds
+            return timeDiff <= 10; // Consider online if the last reading was within the last 60 seconds
         }
 
         // Chart for gas levels
