@@ -30,7 +30,6 @@ $role = $_SESSION['role']; // Get the role from the session
             <h2>Monitoring</h2>
             <a href="admin_dashboard.php"><span class="icon">💽</span>Dashboard</a>
             <a href="#"><span class="icon">💽</span>ESP32 - 1</a>
-            <a href="esp32_2.php"><span class="icon">💽</span>ESP32 - 2</a>
             <a href="../../logout.php"><span class="icon">🚪</span>Logout</a>
         </div>
 
