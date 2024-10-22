@@ -1,0 +1,12 @@
+/LeakSense
+	/assets
+	/config
+		db_connection.php
+		get_latest_reading.php
+		get_readings.php
+		manage_users.php
+	/dashboard
+		/admin
+			admin_dashboard.php
+			dashboard.css
+			dashboard.js
