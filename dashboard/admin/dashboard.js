@@ -87,9 +87,13 @@ function fetchLatestReadings() {
         console.log("Latest readings data:", data); // Debugging output
 
         // Clear the latest readings text
-        document.getElementById('latest-readings').innerHTML = '';
+        document.getElementById('latest-readings-gs1').innerHTML = '';
+        document.getElementById('latest-readings-gs2').innerHTML = '';
 
         data.forEach(reading => {
+            // Log each device reading for debugging
+            console.log(`Reading for device ${reading.device_id}:`, reading);
+
             if (reading.error) {
                 console.error(`Error for device ${reading.device_id}: ${reading.error}`);
                 return;
@@ -102,16 +106,20 @@ function fetchLatestReadings() {
                 updateStatus(reading, 'gs2');
             }
 
-            // Display latest reading details for GS1
+            // Display latest reading details for GS1 and GS2
             const status = getStatusTextAndColor(reading.smoke_status, reading.co_status, reading.lpg_status);
-            const latestReadingsElement = document.getElementById('latest-readings');
             const latestReadingHTML = `
-                <span style="color: blue;">Device: GS1</span>, 
+                <span style="color: blue;">Device: ${reading.device_id}</span>, 
                 <span style="color: blue;">Gas Level: ${reading.gas_level} ppm</span>, 
                 <span style="color: ${status.color};">Status: ${status.text}</span>, 
                 <span style="color: gray;">Time: ${new Date(reading.timestamp).toLocaleString()}</span>
             `;
-            latestReadingsElement.innerHTML += latestReadingHTML + "<br>";
+
+            if (reading.device_id === 'GS1') {
+                document.getElementById('latest-readings-gs1').innerHTML = latestReadingHTML;
+            } else if (reading.device_id === 'GS2') {
+                document.getElementById('latest-readings-gs2').innerHTML = latestReadingHTML;
+            }
 
             // Insert data into the table
             const newRow = tableBody.insertRow();

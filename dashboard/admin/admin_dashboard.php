@@ -34,13 +34,13 @@ $role = $_SESSION['role']; // Get the role from the session
 
             <h2>Monitoring</h2>
             <a href="#"><span class="icon">📊</span>Dashboard</a>
-            <a href="#"><span class="icon">💽</span>ESP32 - 1</a>
-            <a href="#"><span class="icon">💽</span>ESP32 - 2</a>
+            <a href="esp32_1.php"><span class="icon">💽</span>ESP32 - 1</a>
+            <a href="esp32_2.php"><span class="icon">💽</span>ESP32 - 2</a>
             <a href="reports.php"><span class="icon">📅</span>Reports</a>
 
             <div class="menu-section">
                 <h2>Settings</h2>
-                <a href="../../config/manage_users.php"><span class="icon">👥</span>Manage Users</a>
+                <a href=""><span class="icon">👥</span>Manage Users</a>
                 <a href="recipient.php"><span class="icon">⚙️</span>Recipient Setup</a>
             </div>
 
@@ -66,7 +66,10 @@ $role = $_SESSION['role']; // Get the role from the session
                 </div>
 
                 <h2>Latest Gas Readings</h2>
-                <p id="latest-readings">Fetching latest readings...</p>
+                <!-- Separate containers for GS1 and GS2 latest readings -->
+                <div id="latest-readings-gs1"></div>
+                <div id="latest-readings-gs2"></div>
+
                 <canvas id="gasLevelChart" width="600" height="300"></canvas>
                 
                 <h2>Live Readings Table</h2>
