@@ -118,6 +118,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <body>
 
 <div class="login-container">
+    <!-- Add your image here -->
+    <img src="assets/images/1.jpg" alt="LeakSense Logo" class="logo">
     <h2>Login to LeakSense</h2>
 
     <?php if (!empty($error_message)): ?>
@@ -137,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </form>
 
     <div class="footer">
-        <p>&copy; <?php echo date("Y"); ?> LeakSense</p>
+        <p>&copy; <?php echo date("Y"); ?> Animus Co.</p>
     </div>
 </div>
 

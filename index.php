@@ -57,16 +57,24 @@ session_start();
             font-size: 14px;
             color: #666;
         }
+        /* Image Styling */
+        .logo {
+            max-width: 100px; /* Adjust size of the image */
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- Add your image here -->
+    <img src="assets/images/1.jpg" alt="LeakSense Logo" class="logo">
+    
     <h1>Welcome to LeakSense</h1>
     <p>Your safety, our priority. Monitor gas levels with ease.</p>
-    <a href="login.php" class="login-buttonzxc">Login</a>
+    <a href="login.php" class="login-button">Login</a>
     <div class="footer">
-        <p>&copy; <?php echo date("Y"); ?> LeakSense</p>
+        <p>&copy; <?php echo date("Y"); ?> Animus Co.</p>
     </div>
 </div>
 
