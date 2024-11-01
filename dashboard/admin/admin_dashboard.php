@@ -41,6 +41,7 @@ $role = $_SESSION['role']; // Get the role from the session
             <div class="menu-section">
                 <h2>Settings</h2>
                 <a href=""><span class="icon">👥</span>Manage Users</a>
+                <a href="threshold_management.php"><span class="icon">⚙️</span>Threshold</a>
                 <a href="recipient.php"><span class="icon">⚙️</span>Recipient Setup</a>
             </div>
 
