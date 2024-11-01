@@ -1,10 +1,3 @@
-// Sidebar Toggle Functionality
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('collapsed');
-    document.body.classList.toggle('collapsed');
-}
-
 // Load Threshold Data and Populate the Form
 async function loadThresholds() {
     const thresholdList = document.getElementById('threshold-list');
@@ -22,20 +15,17 @@ async function loadThresholds() {
             thresholdItem.className = 'threshold-item';
             thresholdItem.innerHTML = `
                 <h3>Device ID: ${threshold.device_id}</h3>
-                <label>Gas Threshold:
-                    <input type="number" name="gas_threshold_${threshold.device_id}" step="0.01" value="${threshold.gas_threshold}">
-                    <br>
-                </label>
+                <input type="hidden" name="device_id[]" value="${threshold.device_id}">
                 <label>Smoke Threshold:
-                    <input type="number" name="smoke_threshold_${threshold.device_id}" step="0.01" value="${threshold.smoke_threshold}">
+                    <input type="number" name="smoke_threshold[]" step="0.01" value="${threshold.smoke_threshold}">
                     <br>
                 </label>
                 <label>CO Threshold:
-                    <input type="number" name="co_threshold_${threshold.device_id}" step="0.01" value="${threshold.co_threshold}">
+                    <input type="number" name="co_threshold[]" step="0.01" value="${threshold.co_threshold}">
                     <br>
                 </label>
                 <label>LPG Threshold:
-                    <input type="number" name="lpg_threshold_${threshold.device_id}" step="0.01" value="${threshold.lpg_threshold}">
+                    <input type="number" name="lpg_threshold[]" step="0.01" value="${threshold.lpg_threshold}">
                     <br>
                 </label>
                 <hr>

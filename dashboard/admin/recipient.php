@@ -77,7 +77,7 @@ $conn->close();
             <button class="hamburger" id="hamburger" onclick="toggleSidebar()">&#9776;</button>
 
             <h2>Monitoring</h2>
-            <a href="#"><span class="icon">📊</span>Dashboard</a>
+            <a href="admin_dashboard.php"><span class="icon">📊</span>Dashboard</a>
             <a href="esp32_1.php"><span class="icon">💽</span>ESP32 - 1</a>
             <a href="esp32_2.php"><span class="icon">💽</span>ESP32 - 2</a>
             <a href="reports.php"><span class="icon">📅</span>Reports</a>
@@ -85,7 +85,8 @@ $conn->close();
             <div class="menu-section">
                 <h2>Settings</h2>
                 <a href="manage_users.php"><span class="icon">👥</span>Manage Users</a>
-                <a href="recipient_setup.php"><span class="icon">⚙️</span>Recipient Setup</a>
+                <a href="threshold_management.php"><span class="icon">⚙️</span>Threshold</a>
+                <a href="#"><span class="icon">⚙️</span>Recipient Setup</a>
             </div>
 
             <div class="menu-section">

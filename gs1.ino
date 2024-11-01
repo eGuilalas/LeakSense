@@ -3,126 +3,116 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <ESP32_MailClient.h>
-#include <ArduinoJson.h> // Include ArduinoJson for parsing JSON
+#include <ArduinoJson.h>
 
 // Wi-Fi credentials
 const char* ssid = "leaksense";
 const char* password = "Zxczxc3#";
 
-// Server API endpoint for saving readings
-const char* serverName = "http://192.168.137.1/api/save_readings.php"; // Change to your server URL
+// API Endpoints
+const char* saveReadingsUrl = "http://192.168.137.1/api/save_readings.php";
+const char* getRecipientsUrl = "http://192.168.137.1/api/get_recipients.php";
+const char* getThresholdsUrl = "http://192.168.137.1/api/get_thresholds.php";
 
 // LCD setup (I2C address 0x27, 16 columns, 2 rows)
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-// Device ID for the ESP32
-#define DEVICE_ID "GS1" // Change to "GS2" for the second ESP32
-
-// Gas detection thresholds (Calibrated values)
-#define SMOKE_THRESHOLD 1.8  // Example threshold for smoke detection
-#define CO_THRESHOLD 2.0     // Example threshold for CO detection
-#define LPG_THRESHOLD 2.5    // Example threshold for LPG detection
+// Device ID
+#define DEVICE_ID "GS1"
 
 // Email settings
-#define emailSenderAccount    "leaksense.fanshawe@gmail.com" // Sender email address
-#define emailSenderPassword   "wpej wzfg bihi vhjn" // App password or actual password if less secure apps are enabled
-#define smtpServer            "smtp.gmail.com"
-#define smtpServerPort        465  // Switch to SSL with port 465
-#define emailSubject          "ALERT! Gas Leak Detected (Gas-Sensor 1 Area)" // Email subject
+#define emailSenderAccount "leaksense.fanshawe@gmail.com"
+#define emailSenderPassword "wpej wzfg bihi vhjn"
+#define smtpServer "smtp.gmail.com"
+#define smtpServerPort 465
+#define emailSubject "ALERT! Gas Leak Detected"
 
 // Pin definitions
-#define LED_PIN 27       // LED pin
-#define BUZZER_PIN 26    // Buzzer pin
-#define GAS_SENSOR_PIN 35 // MQ2 sensor analog pin
+#define LED_PIN 27
+#define BUZZER_PIN 26
+#define GAS_SENSOR_PIN 35
+
+// Variables for thresholds
+float SMOKE_THRESHOLD = 1.8;
+float CO_THRESHOLD = 2.0;
+float LPG_THRESHOLD = 2.5;
+
+// Timer variables for periodic threshold fetching
+unsigned long lastFetchTime = 0;
+const unsigned long fetchInterval = 3000; // Fetch every 3 seconds (adjust as needed)
+
+// Flag for email
+bool emailSent = false;
 
 // Function prototypes
 void connectToWiFi();
+bool fetchThresholds();
 String sendGasDataAndGetRecipients(float gasValue, String gasType, int smokeStatus, int coStatus, int lpgStatus);
 String detectGasType(float gasValue);
 void handleGasDetection(bool gasDetected);
 void displayGasLevel(float gasValue, String gasType);
 bool sendEmailNotification(float gasValue, String gasType, String recipientResponse);
 
-// Flag variable to keep track if email notification was sent or not
-bool emailSent = false;
-
 void setup() {
-  // Initialize Serial Monitor
   Serial.begin(115200);
-
-  // Initialize LCD
   lcd.init();
   lcd.backlight();
 
-  // Initialize LED and Buzzer
   pinMode(LED_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
   digitalWrite(BUZZER_PIN, LOW);
 
-  // Connect to Wi-Fi
   connectToWiFi();
+  fetchThresholds(); // Initial threshold fetch on startup
 }
 
 void loop() {
-  // Read gas sensor value and scale it to appropriate range (0-5V)
-  int rawValue = analogRead(GAS_SENSOR_PIN);
-  float gasValue = (rawValue / 1023.0) * 1.0; // Adjusted to scale from 0 to 5V
+  // Check if it's time to fetch updated thresholds
+  if (millis() - lastFetchTime >= fetchInterval) {
+    if (fetchThresholds()) {
+      Serial.printf("Updated thresholds - Smoke: %.2f, CO: %.2f, LPG: %.2f\n", SMOKE_THRESHOLD, CO_THRESHOLD, LPG_THRESHOLD);
+    }
+    lastFetchTime = millis();
+  }
 
-  // Determine the type of gas detected
+  int rawValue = analogRead(GAS_SENSOR_PIN);
+  float gasValue = (rawValue / 1023.0) * 1.0;
   String gasType = detectGasType(gasValue);
 
-  // Display gas level and type on LCD
   displayGasLevel(gasValue, gasType);
+  Serial.printf("Gas Level: %.2f - Type: %s\n", gasValue, gasType.c_str());
 
-  // Print gas level and type to Serial Monitor
-  Serial.print("Gas Level: ");
-  Serial.print(gasValue, 2);
-  Serial.print(" - Type: ");
-  Serial.println(gasType);
-
-  // Determine status flags based on the gas type and threshold
   int smokeStatus = (gasType == "Smoke") ? 1 : 0;
   int coStatus = (gasType == "CO") ? 1 : 0;
   int lpgStatus = (gasType == "LPG") ? 1 : 0;
 
-  // Send data to the server and get recipient data from the response
   String recipientResponse = sendGasDataAndGetRecipients(gasValue, gasType, smokeStatus, coStatus, lpgStatus);
-
-  // Check if any gas is detected (gasType is not "No Gas Detected")
   bool gasDetected = (gasType != "No Gas Detected");
-  
-  // Handle gas detection (blink LED, sound buzzer)
   handleGasDetection(gasDetected);
 
-  // Send email alert if gas level exceeds LPG threshold
-  if (gasValue > SMOKE_THRESHOLD && !emailSent) {
+  if (gasValue > LPG_THRESHOLD && !emailSent) {
     if (sendEmailNotification(gasValue, gasType, recipientResponse)) {
-      emailSent = true; // Set flag to avoid sending multiple emails
+      emailSent = true;
     }
-  } else if (gasValue < SMOKE_THRESHOLD && emailSent) {
-    emailSent = false; // Reset flag if gas level is back to safe
+  } else if (gasValue < LPG_THRESHOLD && emailSent) {
+    emailSent = false;
   }
 
-  // Wait for 3 seconds before the next reading
   delay(3000);
 }
 
-// Function to connect to Wi-Fi
 void connectToWiFi() {
   lcd.setCursor(0, 0);
   lcd.print("Connecting...");
   WiFi.begin(ssid, password);
 
-  // Wait until connected
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
     lcd.setCursor(0, 1);
     lcd.print("...");
   }
 
-  // Display connection success
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("WiFi connected");
@@ -135,7 +125,39 @@ void connectToWiFi() {
   Serial.println(WiFi.localIP());
 }
 
-// Function to detect gas type based on calibrated thresholds
+bool fetchThresholds() {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(getThresholdsUrl);
+    int httpResponseCode = http.GET();
+
+    if (httpResponseCode > 0) {
+      String payload = http.getString();
+      DynamicJsonDocument doc(512);
+      deserializeJson(doc, payload);
+
+      JsonArray thresholds = doc["thresholds"];
+      for (JsonVariant threshold : thresholds) {
+        if (String(threshold["device_id"].as<const char*>()) == DEVICE_ID) {
+          SMOKE_THRESHOLD = threshold["smoke_threshold"].as<float>();
+          CO_THRESHOLD = threshold["co_threshold"].as<float>();
+          LPG_THRESHOLD = threshold["lpg_threshold"].as<float>();
+          break;
+        }
+      }
+
+      Serial.printf("Up to dated thresholds - Smoke: %.2f, CO: %.2f, LPG: %.2f\n", SMOKE_THRESHOLD, CO_THRESHOLD, LPG_THRESHOLD);
+      http.end();
+      return true;
+    } else {
+      Serial.printf("Error in fetching thresholds: %d\n", httpResponseCode);
+    }
+
+    http.end();
+  }
+  return false;
+}
+
 String detectGasType(float gasValue) {
   if (gasValue >= LPG_THRESHOLD) {
     return "LPG";
@@ -148,16 +170,14 @@ String detectGasType(float gasValue) {
   }
 }
 
-// Function to send gas data to the server and return the recipients from the response
 String sendGasDataAndGetRecipients(float gasValue, String gasType, int smokeStatus, int coStatus, int lpgStatus) {
   String recipientResponse = "";
-  
+
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
-    http.begin(serverName);
+    http.begin(saveReadingsUrl);
     http.addHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    // Prepare the POST data
     String postData = "device_id=" + String(DEVICE_ID) +
                       "&gas_level=" + String(gasValue, 2) +
                       "&gas_type=" + gasType +
@@ -165,26 +185,23 @@ String sendGasDataAndGetRecipients(float gasValue, String gasType, int smokeStat
                       "&co_status=" + String(coStatus) +
                       "&lpg_status=" + String(lpgStatus);
 
-    // Send the POST request
     int httpResponseCode = http.POST(postData);
 
-    // Check response code
     if (httpResponseCode > 0) {
-      recipientResponse = http.getString();  // Get the response with recipients
-      Serial.println("POST Response: " + recipientResponse);
+      recipientResponse = http.getString();
+      Serial.println("POST Response (Recipients & Thresholds): " + recipientResponse);
     } else {
-      Serial.println("Error in sending POST: " + String(httpResponseCode));
+      Serial.printf("Error in sending POST: %d\n", httpResponseCode);
     }
 
-    http.end(); // End HTTP connection
+    http.end();
   } else {
     Serial.println("WiFi disconnected, unable to send data");
   }
 
-  return recipientResponse; // Return the response containing recipients
+  return recipientResponse;
 }
 
-// Function to handle gas detection (LED, buzzer)
 void handleGasDetection(bool gasDetected) {
   if (gasDetected) {
     for (int i = 0; i < 5; i++) {
@@ -198,55 +215,46 @@ void handleGasDetection(bool gasDetected) {
   }
 }
 
-// Function to display gas level and type on the LCD
 void displayGasLevel(float gasValue, String gasType) {
   lcd.clear();
   lcd.setCursor(0, 0);
   lcd.print("Gas Level: ");
-  lcd.print(gasValue, 2); // Display gas value with 2 decimal places
+  lcd.print(gasValue, 2);
   lcd.setCursor(0, 1);
   lcd.print(gasType);
 }
 
-// Function to send email notification with dynamic recipients from the POST response
 bool sendEmailNotification(float gasValue, String gasType, String recipientResponse) {
-  // Check if Wi-Fi is connected
   if (WiFi.status() != WL_CONNECTED) {
     Serial.println("WiFi not connected. Cannot send email.");
     return false;
   }
 
-  // Simplified email message
   String emailMessage = "Gas Leak Detected!\nLevel: " + String(gasValue, 2) + " (" + gasType + ")";
-
-  // Set the SMTP Server Email host, port, account, and password
   SMTPData smtpData;
   smtpData.setLogin(smtpServer, smtpServerPort, emailSenderAccount, emailSenderPassword);
   smtpData.setSender("LeakSense System", emailSenderAccount);
   smtpData.setPriority("High");
   smtpData.setSubject(emailSubject);
-  
-  // Send as plain text to minimize size
-  smtpData.setMessage(emailMessage, false);  // Set 'false' to send plain text instead of HTML
+  smtpData.setMessage(emailMessage, false);
 
-  // Parse recipients from recipientResponse JSON
   DynamicJsonDocument doc(512);
   deserializeJson(doc, recipientResponse);
   JsonArray recipients = doc["recipients"];
 
-  // Add each recipient from the POST response
+  Serial.println("Sending email to recipients:");
   for (JsonVariant recipient : recipients) {
-    smtpData.addRecipient(recipient.as<String>());
+    String email = recipient.as<String>();
+    smtpData.addRecipient(email);
+    Serial.println(email);
   }
 
-  // Try sending the email
   if (MailClient.sendMail(smtpData)) {
     Serial.println("Email sent successfully!");
     smtpData.empty();
     return true;
   } else {
-    Serial.print("Error sending Email: ");
-    Serial.println(MailClient.smtpErrorReason());
+    Serial.printf("Error sending Email: %s\n", MailClient.smtpErrorReason().c_str());
     smtpData.empty();
     return false;
   }
