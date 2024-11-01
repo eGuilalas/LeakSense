@@ -10,4 +10,4 @@ LeakSense is designed to ensure safety in residential, commercial, and industria
 
 Future improvements could include SMS notifications for faster alerts, a mobile app for remote monitoring, and IoT cloud integration to extend monitoring capabilities beyond the local network. Additionally, automating responses—like closing gas valves or activating exhaust fans—when gas levels exceed safe limits could further enhance safety.
 
-In summary, LeakSense is a practical and efficient solution for gas leakage detection. Its use of ESP32 microcontrollers, real-time monitoring, email alerts, and role-based web access makes it a reliable safety tool. With additional features and cloud integration, LeakSense has the potential to provide even greater value and usability in various environments.
+In summary, LeakSense is a practical and efficient solution for gas leakage detection. Its use of ESP32 microcontrollers, real-time monitoring, email alerts, and role-based web access makes it a reliable safety tool. With additional features and cloud integration, LeakSense has the potential to provide even greater value and usability in various environments...
