@@ -10,9 +10,9 @@ const char* ssid = "leaksense";
 const char* password = "Zxczxc3#";
 
 // API Endpoints
-const char* saveReadingsUrl = "http://192.168.137.1/api/save_readings.php";
-const char* getRecipientsUrl = "http://192.168.137.1/api/get_recipients.php";
-const char* getThresholdsUrl = "http://192.168.137.1/api/get_thresholds.php";
+const char* saveReadingsUrl = "http://192.168.137.1/leaksense/api/save_readings.php";
+const char* getRecipientsUrl = "http://192.168.137.1/leaksense/api/get_recipients.php";
+const char* getThresholdsUrl = "http://192.168.137.1/leaksense/api/get_thresholds.php";
 
 // LCD setup (I2C address 0x27, 16 columns, 2 rows)
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -25,7 +25,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2);
 #define emailSenderPassword "wpej wzfg bihi vhjn"
 #define smtpServer "smtp.gmail.com"
 #define smtpServerPort 465
-#define emailSubject "ALERT! Gas Leak Detected"
+#define emailSubject "ALERT! Gas Leak Detected GS1"
 
 // Pin definitions
 #define LED_PIN 27
