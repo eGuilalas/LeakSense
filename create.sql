@@ -10,7 +10,6 @@ CREATE TABLE email_recipients (
 CREATE TABLE thresholds (
   id INT NOT NULL AUTO_INCREMENT,
   device_id VARCHAR(10) UNIQUE,
-  gas_threshold FLOAT,
   smoke_threshold FLOAT,
   co_threshold FLOAT,
   lpg_threshold FLOAT,
