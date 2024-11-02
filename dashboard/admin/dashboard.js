@@ -1,5 +1,3 @@
-// dashboard.js
-
 // Sidebar Toggle Functionality
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
@@ -76,6 +74,36 @@ const gasLevelChart = new Chart(ctxGasLevel, {
 });
 
 const tableBody = document.getElementById('readingsTable').getElementsByTagName('tbody')[0];
+
+// Fetch Server Status from server_status.php
+function fetchServerStatus() {
+    fetch('../../config/server_status.php')
+        .then(response => {
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            return response.json();
+        })
+        .then(data => {
+            console.log("Server status response:", data); // Debugging output
+            const serverStatusElement = document.getElementById('server-status');
+            if (data.status === "online") {
+                serverStatusElement.textContent = "Online ✔️";
+                serverStatusElement.className = "online";
+            } else {
+                serverStatusElement.textContent = "Offline ❌";
+                serverStatusElement.className = "offline";
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching server status:", error);
+            const serverStatusElement = document.getElementById('server-status');
+            serverStatusElement.textContent = "Offline ❌";
+            serverStatusElement.className = "offline";
+        });
+}
+
+// Initial server status check and repeat every 5 seconds
+fetchServerStatus();
+setInterval(fetchServerStatus, 5000);
 
 function fetchLatestReadings() {
     Promise.all([

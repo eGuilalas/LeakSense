@@ -223,3 +223,29 @@ th {
     border-radius: 4px;
     border: 1px solid #ccc;
 }
+
+/* Server and Device Status Styling */
+.status-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+}
+
+.status i {
+    margin-left: 8px;
+    font-size: 18px;
+}
+
+.online {
+    color: green;
+}
+
+.offline {
+    color: red;
+}

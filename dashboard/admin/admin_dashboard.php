@@ -62,6 +62,7 @@ $role = $_SESSION['role']; // Get the role from the session
             <div class="container">
                 <!-- Device status section for GS1 and GS2 -->
                 <div class="status-container">
+                    <div class="status">Server Status: <i id="server-status" class="offline">Offline</i></div>
                     <div class="status">GS1 Status: <i id="gs1-status" class="offline">Offline</i></div>
                     <div class="status">GS2 Status: <i id="gs2-status" class="offline">Offline</i></div>
                 </div>
