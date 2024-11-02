@@ -28,9 +28,9 @@ include '../../config/auth.php'; // Authenticate user
 
             <div class="menu-section">
                 <h2>Settings</h2>
-                <a href="../admin/manage_user.php"><span class="icon">👥</span>Manage Users</a>
+                <a href="manage_users.php"><span class="icon">👥</span>Manage Users</a>
                 <a href="threshold_management.php" class="active"><span class="icon">⚙️</span>Threshold</a>
-                <a href="../admin/recipient.php"><span class="icon">⚙️</span>Recipient Setup</a>
+                <a href="recipient.php"><span class="icon">⚙️</span>Recipient Setup</a>
             </div>
 
             <div class="menu-section">
