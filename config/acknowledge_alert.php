@@ -1,24 +1,25 @@
 <?php
-// acknowledge_alert.php
-
+session_start();
 include('db_connection.php');
 
-// Check if the request is POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $reading_id = $_POST['reading_id'];
+if (!isset($_POST['reading_id'], $_POST['user_id'], $_POST['comment'])) {
+    echo json_encode(['message' => 'Invalid request']);
+    exit();
+}
 
-    // Update the alert status to "Acknowledged"
-    $query = "UPDATE gas_readings SET alert_status = 1 WHERE id = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param('i', $reading_id);
-    
-    if ($stmt->execute()) {
-        echo json_encode(["message" => "Alert acknowledged successfully.", "status" => 1]);
-    } else {
-        echo json_encode(["message" => "Failed to acknowledge the alert.", "status" => 0]);
-    }
+$reading_id = $_POST['reading_id'];
+$user_id = $_POST['user_id'];
+$comment = $_POST['comment'];
 
-    $stmt->close();
-    $conn->close();
+$query = "INSERT INTO gas_alert_responses (reading_id, user_id, response_type, comments) 
+          VALUES (?, ?, 'acknowledged', ?) 
+          ON DUPLICATE KEY UPDATE response_type='acknowledged', user_id=?, comments=?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("iisis", $reading_id, $user_id, $comment, $user_id, $comment);
+
+if ($stmt->execute()) {
+    echo json_encode(['message' => 'Alert acknowledged successfully']);
+} else {
+    echo json_encode(['message' => 'Failed to acknowledge alert']);
 }
 ?>

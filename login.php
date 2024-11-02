@@ -16,7 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Check if user exists and password matches using password_verify
     if ($user && password_verify($password, $user['password'])) {
+        // Set session variables
         $_SESSION['loggedin'] = true;
+        $_SESSION['user_id'] = $user['id'];  // Add user_id to session
         $_SESSION['username'] = $user['username'];
         $_SESSION['role'] = $user['role'];
 
