@@ -249,3 +249,42 @@ th {
 .offline {
     color: red;
 }
+
+/* Counter Styles */
+.counters-container {
+    display: flex;
+    justify-content: center; /* Centers the counters */
+    gap: 20px; /* Minimal gap for close alignment */
+    margin-bottom: 10px; /* Reduced margin for tighter layout */
+}
+
+.counter {
+    text-align: center;
+    padding: 15px; /* Reduced padding for compact counters */
+    border-radius: 8px;
+    width: 100px; /* Adjusted width for compact alignment */
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.counter h3 {
+    margin: 0;
+    font-size: 16px; /* Slightly smaller font size for tighter layout */
+}
+
+.counter.pending {
+    background-color: red;
+}
+
+.counter.acknowledged {
+    background-color: blue;
+}
+
+.counter.false-alarm {
+    background-color: orange;
+}
+
+.counter.duplicate {
+    background-color: purple;
+}

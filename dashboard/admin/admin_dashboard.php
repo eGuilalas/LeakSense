@@ -58,7 +58,28 @@ $role = $_SESSION['role']; // Get the role from the session
         </div>
 
         <div class="main-content" id="main-content">
-            <h1>Live Gas Readings Graph</h1>
+            <h1>Live Gas Readings Dashboard</h1>
+
+            <!-- Counters Section -->
+            <div class="counters-container">
+                <div class="counter pending">
+                    <h3>Pending</h3>
+                    <p id="pending-count">0</p>
+                </div>
+                <div class="counter acknowledged">
+                    <h3>Acknowledged</h3>
+                    <p id="acknowledged-count">0</p>
+                </div>
+                <div class="counter false-alarm">
+                    <h3>False Alarm</h3>
+                    <p id="false-alarm-count">0</p>
+                </div>
+                <div class="counter duplicate">
+                    <h3>Duplicate ID</h3>
+                    <p id="duplicate-count">0</p>
+                </div>
+            </div>
+
             <div class="container">
                 <!-- Device status section for GS1 and GS2 -->
                 <div class="status-container">
