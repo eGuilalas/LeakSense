@@ -288,10 +288,3 @@ th {
 .counter.duplicate {
     background-color: purple;
 }
-
-.notice {
-    background-color: #fff3cd;
-    border: 1px solid #ffeeba;
-    padding: 10px;
-    font-weight: bold;
-}
