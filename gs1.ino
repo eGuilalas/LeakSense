@@ -4,15 +4,20 @@
 #include <LiquidCrystal_I2C.h>
 #include <ESP32_MailClient.h>
 #include <ArduinoJson.h>
+#include <WebServer.h>
+#include <ArduinoOTA.h>
 
 // Wi-Fi credentials
 const char* ssid = "leaksense";
 const char* password = "Zxczxc3#";
 
+// Firmware version
+const char* firmwareVersion = "1.0.1"; 
+
 // API Endpoints
-const char* saveReadingsUrl = "http://192.168.137.1/leaksense/api/save_readings.php";
-const char* getRecipientsUrl = "http://192.168.137.1/leaksense/api/get_recipients.php";
-const char* getThresholdsUrl = "http://192.168.137.1/leaksense/api/get_thresholds.php";
+String saveReadingsUrl = "http://192.168.137.1/leaksense/api/save_readings.php";
+String getRecipientsUrl = "http://192.168.137.1/leaksense/api/get_recipients.php";
+String getThresholdsUrl = "http://192.168.137.1/leaksense/api/get_thresholds.php";
 
 // LCD setup (I2C address 0x27, 16 columns, 2 rows)
 LiquidCrystal_I2C lcd(0x27, 16, 2);
@@ -39,10 +44,13 @@ float LPG_THRESHOLD = 2.5;
 
 // Timer variables for periodic threshold fetching
 unsigned long lastFetchTime = 0;
-const unsigned long fetchInterval = 3000; // Fetch every 3 seconds (adjust as needed)
+const unsigned long fetchInterval = 3000;
 
 // Flag for email
 bool emailSent = false;
+
+// Web server on port 80
+WebServer server(80);
 
 // Function prototypes
 void connectToWiFi();
@@ -52,6 +60,8 @@ String detectGasType(float gasValue);
 void handleGasDetection(bool gasDetected);
 void displayGasLevel(float gasValue, String gasType);
 bool sendEmailNotification(float gasValue, String gasType, String recipientResponse);
+void handleRoot();
+void startOTA();
 
 void setup() {
   Serial.begin(115200);
@@ -65,9 +75,20 @@ void setup() {
 
   connectToWiFi();
   fetchThresholds(); // Initial threshold fetch on startup
+  
+  // Setup OTA updates
+  startOTA();
+
+  // Setup web server routes
+  server.on("/", handleRoot);
+  server.begin();
+  Serial.println("Web server started, ready for requests.");
 }
 
 void loop() {
+  server.handleClient(); // Handle web server requests
+  ArduinoOTA.handle();   // Handle OTA updates
+
   // Check if it's time to fetch updated thresholds
   if (millis() - lastFetchTime >= fetchInterval) {
     if (fetchThresholds()) {
@@ -94,6 +115,9 @@ void loop() {
   if (gasValue > LPG_THRESHOLD && !emailSent) {
     if (sendEmailNotification(gasValue, gasType, recipientResponse)) {
       emailSent = true;
+    } else {
+      Serial.println("Email sending failed. Retrying...");
+      emailSent = sendEmailNotification(gasValue, gasType, recipientResponse);
     }
   } else if (gasValue < LPG_THRESHOLD && emailSent) {
     emailSent = false;
@@ -102,6 +126,7 @@ void loop() {
   delay(3000);
 }
 
+// Connect to Wi-Fi and display IP on LCD
 void connectToWiFi() {
   lcd.setCursor(0, 0);
   lcd.print("Connecting...");
@@ -125,6 +150,42 @@ void connectToWiFi() {
   Serial.println(WiFi.localIP());
 }
 
+// Function to handle the root webpage, displaying firmware info
+void handleRoot() {
+  String html = "<html><body>";
+  html += "<h1>LeakSense System GS1-(ESP32-1)</h1>";
+  html += "<p>Firmware Version: ";
+  html += firmwareVersion;
+  html += "</p>";
+  html += "<p>Device IP: ";
+  html += WiFi.localIP().toString();
+  html += "</p>";
+  html += "</body></html>";
+  
+  server.send(200, "text/html", html);
+}
+
+// Setup OTA update
+void startOTA() {
+  ArduinoOTA.setHostname("LeakSense-GS1");
+  ArduinoOTA.onStart([]() {
+    String type = (ArduinoOTA.getCommand() == U_FLASH) ? "sketch" : "filesystem";
+    Serial.println("Start updating " + type);
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+  });
+  ArduinoOTA.begin();
+}
+
 bool fetchThresholds() {
   if (WiFi.status() == WL_CONNECTED) {
     HTTPClient http;
@@ -146,11 +207,11 @@ bool fetchThresholds() {
         }
       }
 
-      Serial.printf("Up to dated thresholds - Smoke: %.2f, CO: %.2f, LPG: %.2f\n", SMOKE_THRESHOLD, CO_THRESHOLD, LPG_THRESHOLD);
+      Serial.printf("Updated thresholds - Smoke: %.2f, CO: %.2f, LPG: %.2f\n", SMOKE_THRESHOLD, CO_THRESHOLD, LPG_THRESHOLD);
       http.end();
       return true;
     } else {
-      Serial.printf("Error in fetching thresholds: %d\n", httpResponseCode);
+      Serial.printf("Error fetching thresholds: %d\n", httpResponseCode);
     }
 
     http.end();
@@ -246,7 +307,7 @@ bool sendEmailNotification(float gasValue, String gasType, String recipientRespo
   for (JsonVariant recipient : recipients) {
     String email = recipient.as<String>();
     smtpData.addRecipient(email);
-    Serial.println(email);
+    Serial.println("Attempting to send email to: " + email);
   }
 
   if (MailClient.sendMail(smtpData)) {

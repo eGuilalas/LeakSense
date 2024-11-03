@@ -1,0 +1,16 @@
+1. user expiration
+2. change password every () days
+3. log in lock - ok
+4. idle for 10 mins auto log out
+5. contact details - Department - Position - empid
+6. recipient to manage users (depending on shift)
+7. counter -> new page
+8. Fan on/off status
+9. fan acknowledge - on/off fan
+
+French - English
+
+
+esp32 update firmware / ipadd OTA update
+
+

@@ -3,6 +3,8 @@ session_start();
 require 'db_connection.php'; // Include the database connection file
 
 $error_message = ''; // Initialize an empty error message
+$lockout_duration = 15; // Lockout duration in minutes
+$max_attempts = 5; // Maximum allowed attempts
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Retrieve username and password from POST request
@@ -14,33 +16,73 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->execute(['username' => $username]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Check if user exists and password matches using password_verify
-    if ($user && password_verify($password, $user['password'])) {
-        // Set session variables
-        $_SESSION['loggedin'] = true;
-        $_SESSION['user_id'] = $user['id'];  // Add user_id to session
-        $_SESSION['username'] = $user['username'];
-        $_SESSION['role'] = $user['role'];
-
-        // Redirect based on user role
-        switch ($user['role']) {
-            case 'admin':
-                header('Location: dashboard/admin/admin_dashboard.php');
-                break;
-            case 'user':
-                header('Location: dashboard/user/user_dashboard.php');
-                break;
-            case 'super_user':
-                header('Location: dashboard/uperuser/super_user_dashboard.php');
-                break;
-            case 'super_admin':
-                header('Location: dashboard/superadmin/super_admin_dashboard.php');
-                break;
-            default:
-                $error_message = 'Role not recognized.';
-                break;
+    if ($user) {
+        // Check if account is expired
+        $currentDate = new DateTime();
+        if ($user['expiration_date'] && new DateTime($user['expiration_date']) < $currentDate) {
+            $error_message = 'Your account has expired. Please contact support.';
         }
-        exit; // Ensure no further code is executed after redirection
+        // Check if user is locked out
+        elseif ($user['lockout_until'] && strtotime($user['lockout_until']) > time()) {
+            $error_message = 'Account is locked. Please try again later.';
+        } else {
+            // If account is not locked or expired, check the password
+            if (password_verify($password, $user['password'])) {
+                // Reset failed attempts on successful login
+                $stmt = $pdo->prepare("UPDATE users SET failed_attempts = 0, lockout_until = NULL WHERE id = :id");
+                $stmt->execute(['id' => $user['id']]);
+
+                // Set session variables
+                $_SESSION['loggedin'] = true;
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+                $_SESSION['expiration_date'] = $user['expiration_date']; // Add expiration_date to session
+
+                // Redirect based on user role
+                switch ($user['role']) {
+                    case 'admin':
+                        header('Location: dashboard/admin/admin_dashboard.php');
+                        break;
+                    case 'user':
+                        header('Location: dashboard/user/user_dashboard.php');
+                        break;
+                    case 'super_user':
+                        header('Location: dashboard/superuser/super_user_dashboard.php');
+                        break;
+                    case 'super_admin':
+                        header('Location: dashboard/superadmin/super_admin_dashboard.php');
+                        break;
+                    default:
+                        $error_message = 'Role not recognized.';
+                        break;
+                }
+                exit;
+            } else {
+                // If password is incorrect, increment failed attempts
+                $failed_attempts = $user['failed_attempts'] + 1;
+
+                if ($failed_attempts >= $max_attempts) {
+                    // Lock the account
+                    $lockout_until = date("Y-m-d H:i:s", strtotime("+$lockout_duration minutes"));
+                    $stmt = $pdo->prepare("UPDATE users SET failed_attempts = :failed_attempts, lockout_until = :lockout_until WHERE id = :id");
+                    $stmt->execute([
+                        'failed_attempts' => $failed_attempts,
+                        'lockout_until' => $lockout_until,
+                        'id' => $user['id']
+                    ]);
+                    $error_message = 'Account is locked due to multiple failed login attempts. Please try again later.';
+                } else {
+                    // Update failed attempts without locking the account
+                    $stmt = $pdo->prepare("UPDATE users SET failed_attempts = :failed_attempts WHERE id = :id");
+                    $stmt->execute([
+                        'failed_attempts' => $failed_attempts,
+                        'id' => $user['id']
+                    ]);
+                    $error_message = 'Invalid credentials. Please try again.';
+                }
+            }
+        }
     } else {
         $error_message = 'Invalid credentials. Please try again.';
     }

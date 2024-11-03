@@ -1,18 +1,17 @@
 <?php
 // admin_dashboard.php
 
-// Ensure the session is started and user is logged in
 session_start();
 
-// Check if the user is logged in, and retrieve the username and role from the session
+// Check if the user is logged in and retrieve session data
 if (!isset($_SESSION['loggedin'])) {
-    // Redirect to login if not logged in
-    header('Location: ../../login.php'); // Adjust path as needed
+    header('Location: ../../login.php');
     exit();
 }
 
-$username = $_SESSION['username']; // Get the logged-in username
-$role = $_SESSION['role']; // Get the role from the session
+$username = $_SESSION['username'];
+$role = $_SESSION['role'];
+$expiration_date = $_SESSION['expiration_date'] ?? 'N/A'; // Set expiration date
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -20,16 +19,13 @@ $role = $_SESSION['role']; // Get the role from the session
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LeakSense Admin Dashboard</title>
-    <!-- Link to external CSS -->
     <link rel="stylesheet" href="dashboard.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-    <!-- Dashboard Layout -->
     <div class="dashboard">
         <div class="sidebar" id="sidebar">
-            <!-- Hamburger Menu inside the sidebar -->
             <button class="hamburger" id="hamburger" onclick="toggleSidebar()">&#9776;</button>
 
             <h2>Monitoring</h2>
@@ -38,19 +34,17 @@ $role = $_SESSION['role']; // Get the role from the session
             <a href="esp32_2.php"><span class="icon">💽</span>ESP32 - 2</a>
             <a href="reports.php"><span class="icon">📅</span>Reports</a>
 
-            <!-- <div class="menu-section">
-                <h2>Settings</h2>
-                <a href="manage_users.php"><span class="icon">👥</span>Manage Users</a>
-                <a href="threshold_management.php"><span class="icon">⚙️</span>Threshold</a>
-                <a href="recipient.php"><span class="icon">⚙️</span>Recipient Setup</a>
-            </div> -->
-
             <div class="menu-section">
                 <h2>Welcome</h2>
-                <a href="#"><span class="icon">👤</span><span style="color: red;"><?php echo htmlspecialchars($username); ?></span> - <?php echo htmlspecialchars($role); ?></a>
+                <a href="#">
+                    <span class="icon">👤</span>
+                    <span style="color: red;"><?php echo htmlspecialchars($username); ?></span> - <?php echo htmlspecialchars($role); ?>
+                </a>
+                <a href="#">
+                    <span style="font-size: 0.9em; color: gray; display: block; margin-top: 4px;">Expiration: <?php echo htmlspecialchars($expiration_date); ?></span>
+                </a>
             </div>
 
-            <!-- Logout Section -->
             <div class="menu-section">
                 <h2>Logout</h2>
                 <a href="../../logout.php"><span class="icon">🚪</span>Logout</a>
@@ -89,7 +83,6 @@ $role = $_SESSION['role']; // Get the role from the session
                 </div>
 
                 <h2>Latest Gas Readings</h2>
-                <!-- Separate containers for GS1 and GS2 latest readings -->
                 <div id="latest-readings-gs1"></div>
                 <div id="latest-readings-gs2"></div>
 
@@ -117,7 +110,6 @@ $role = $_SESSION['role']; // Get the role from the session
         </div>
     </div>
 
-    <!-- Link to external JS -->
     <script src="dashboard.js"></script>
 
 </body>

@@ -4,6 +4,8 @@
 // Ensure the session is started and user is logged in
 session_start();
 
+require_once('../../config/user_expiration.php');
+
 // Check if the user is logged in, and retrieve the username and role from the session
 if (!isset($_SESSION['loggedin'])) {
     // Redirect to login if not logged in
@@ -119,6 +121,30 @@ $role = $_SESSION['role']; // Get the role from the session
 
     <!-- Link to external JS -->
     <script src="dashboard.js"></script>
+
+    <script>
+        // Logout timer in milliseconds (10 minutes)
+        const idleTimeLimit = 600000; // 600,000 ms = 10 minutes
+        let idleTimer;
+
+        // Reset the idle timer on any user interaction
+        function resetTimer() {
+            clearTimeout(idleTimer);
+            idleTimer = setTimeout(logoutUser, idleTimeLimit);
+        }
+
+        // Redirect to the logout page after 10 minutes of inactivity
+        function logoutUser() {
+            window.location.href = '../../logout.php';
+        }
+
+        // Listen for any user activity to reset the timer
+        window.onload = resetTimer;
+        window.onmousemove = resetTimer;
+        window.onkeypress = resetTimer;
+        window.onscroll = resetTimer;
+        window.onclick = resetTimer;
+    </script>
 
 </body>
 </html>
