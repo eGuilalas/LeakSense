@@ -28,13 +28,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 header('Location: dashboard/admin/admin_dashboard.php');
                 break;
             case 'user':
-                header('Location: dashboard/user_dashboard.php');
+                header('Location: dashboard/user/user_dashboard.php');
                 break;
             case 'super_user':
-                header('Location: dashboard/super_user_dashboard.php');
+                header('Location: dashboard/uperuser/super_user_dashboard.php');
                 break;
             case 'super_admin':
-                header('Location: dashboard/super_admin_dashboard.php');
+                header('Location: dashboard/superadmin/super_admin_dashboard.php');
                 break;
             default:
                 $error_message = 'Role not recognized.';
