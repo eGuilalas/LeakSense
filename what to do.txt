@@ -1,16 +1,21 @@
-1. user expiration
-2. change password every () days
-3. log in lock - ok
-4. idle for 10 mins auto log out
-5. contact details - Department - Position - empid
-6. recipient to manage users (depending on shift)
-7. counter -> new page
-8. Fan on/off status
-9. fan acknowledge - on/off fan
+1. user expiration - ok
+2. change password every () days - x
 
+3. log in lock -ok
+4. idle for 10 mins auto log out - ok
+5. contact details - Department - Position - empid - ok
+
+
+esp32 update firmware / ipadd OTA update - ok
+
+
+change password every () days - x
+recipient to manage users (depending on shift) - manually added x
+counter -> new page - pc hang x
+Fan on/off status - no fans yet
+Fan acknowledge (on/off fan) - no fans yet
 French - English
+button report -> graph.php
 
-
-esp32 update firmware / ipadd OTA update
 
 
