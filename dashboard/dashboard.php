@@ -1,5 +1,11 @@
 <?php
 // PHP backend logic (for example purposes, here we use static data)
+session_start();
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../login.php");
+    exit();
+}
+
 $data = [
     "live_gas_table" => [
         ["DeviceID" => "ESP32-GasSensor1", "Gas Level" => 45, "Status" => 0, "Timestamp" => "2024-11-01 10:00"],
@@ -92,7 +98,7 @@ $data = [
                 <h5>ENG - FR</h5>
             </div>
             <div class="bottom-section">
-                <a href="login.php">Logout</a>
+                <a href="../logout.php">Logout</a>
             </div>
         </aside>
 

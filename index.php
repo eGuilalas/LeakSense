@@ -24,6 +24,10 @@
             width: 100%; 
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
+        .welcome-container img { 
+            width: 80px; 
+            margin-bottom: 20px; 
+        }
         .welcome-container h1 { 
             color: #F72585; 
             margin-bottom: 15px; 
@@ -52,11 +56,12 @@
 </head>
 <body>
     <div class="welcome-container">
+        <!-- Add your image here -->
+        <img src="assets/images/1.jpg" alt="Leaksense Logo">
         <h1>Welcome to Leaksense</h1>
         <p>Your reliable gas monitoring and alert system.</p>
         <p>Navigate through the application to access the dashboard, reports, and settings.</p>
-        <a href="Login.php">Log in</a>
-        <p></p>
+        <a href="login.php">Log in</a>
         <p>© 2024 Animus Co.</p>
     </div>
 </body>
