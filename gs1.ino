@@ -112,15 +112,22 @@ void loop() {
   bool gasDetected = (gasType != "No Gas Detected");
   handleGasDetection(gasDetected);
 
-  if (gasValue > LPG_THRESHOLD && !emailSent) {
-    if (sendEmailNotification(gasValue, gasType, recipientResponse)) {
-      emailSent = true;
-    } else {
-      Serial.println("Email sending failed. Retrying...");
-      emailSent = sendEmailNotification(gasValue, gasType, recipientResponse);
-    }
-  } else if (gasValue < LPG_THRESHOLD && emailSent) {
-    emailSent = false;
+  // New condition to check all thresholds
+  if (((gasType == "Smoke" && gasValue > SMOKE_THRESHOLD) ||
+       (gasType == "CO" && gasValue > CO_THRESHOLD) ||
+       (gasType == "LPG" && gasValue > LPG_THRESHOLD)) && !emailSent) {
+      
+      Serial.println("Threshold exceeded, attempting to send email...");
+      if (sendEmailNotification(gasValue, gasType, recipientResponse)) {
+          emailSent = true;
+      } else {
+          Serial.println("Email sending failed. Retrying...");
+          emailSent = sendEmailNotification(gasValue, gasType, recipientResponse);
+      }
+  } else if (gasValue < min(SMOKE_THRESHOLD, min(CO_THRESHOLD, LPG_THRESHOLD)) && emailSent) {
+      // Reset emailSent flag if below all thresholds
+      Serial.println("Gas level below all thresholds, reset emailSent flag.");
+      emailSent = false;
   }
 
   delay(3000);
