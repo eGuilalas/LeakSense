@@ -1,21 +1,99 @@
 1. user expiration - ok
-2. change password every () days - x
-
 3. log in lock -ok
 4. idle for 10 mins auto log out - ok
 5. contact details - Department - Position - empid - ok
-
-
+French - English - ok
 esp32 update firmware / ipadd OTA update - ok
 
 
 change password every () days - x
 recipient to manage users (depending on shift) - manually added x
 counter -> new page - pc hang x
+
 Fan on/off status - no fans yet
 Fan acknowledge (on/off fan) - no fans yet
-French - English
 button report -> graph.php
+
+register -> recipient (option - disable email notif)
+email validation (duplicate)
+w/o .com -> error message
+translate
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+11-04
+USER TABLE
+remove expiration
+remove emp_id
+remove position
+add usertype (corporate, home owner)
+add createdate
+
+Create login table(ins... 
+PK - id
+FK userID
+log in time
+log out time
+failed attempt 5
+lockout_until 30mins
+
+DEVICE TABLE(separate gas_reading)
+DEVICEID PK
+USERID FK
+device name
+location
+status
+timestamp
+
+Gasreading -> SensorReading
+ReadingID
+DeviceID
+
+add warning about the threshold
+suggested threshold
+PHP-  >9 will be red
+
+Gas_reading -> SensorReading
+(delete status)
+SensorReadingID PK
+DeviceID FK
+GasLevel
+Smoke_status
+
+
+
+tomorrow night
+
+8 database finalization
+ 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

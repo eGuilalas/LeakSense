@@ -1,0 +1,61 @@
+Table user
+userID (PK)
+username
+password
+userrole: Enum(admin, user, super_user, super_admin)
+type: Enum(corporate, homeowner)
+name
+email
+phone
+address
+status (tiny int: 0=active, 1=deactivated) -- for email alert(can enable/disable)
+timestamp
+login attempt
+lockout_intil
+
+
+Table Device
+deviceID(PK)
+userID(FK) -- from user table
+Devicename
+location
+status
+timestamp
+
+Table Thresholds
+thresholdID(PK)
+deviceID(FK) w/ Device Table
+smoke_threshold
+co_threshold
+lpg_threshold
+timestamp
+
+Table SensorReading
+readingID(PK)
+deviceID(FK) -- from device table
+ppm -- this is gas level
+smoke_status -- tiny int (0=no gas detected, 1=gas detected)
+co_status -- tiny int (0=no gas detected, 1=gas detected)
+lpg_status -- tiny int (0=no gas detected, 1=gas detected)
+timestamp -- time stamp for readings
+actionby(FK) -- from user table userID -- user takes action( click the acknowledge or false alarm)
+status -- tiny int (0=no gas detected, 1=pending, 2=acknowledge, 3=false alarm)
+comment
+actionbytimestamp -- time stamp for action by
+
+
+table alert
+alertID(PK)
+deviceID(FK) --from device
+readingID(FK) --from alert
+email
+gastype
+gaslevel
+thresholdlevel
+timestamp
+
+
+
+
+
+
