@@ -83,15 +83,19 @@ $data = [
                         <li><a href="gs1.php">ESP32-GasSensor 1</a></li>
                         <li><a href="gs2.php">ESP32-GasSensor 2</a></li>
                         <li><a href="Reports.php">Reports</a></li>
-                        <li><a href="manage_user.php">Manage User</a></li>
-                        <li><a href="Threshold.php">Threshold Setup</a></li>
+                        <!-- Conditionally show links for Threshold and Manage User -->
+                        <?php if ($_SESSION['userrole'] !== 'user'): ?>
+                            <li><a href="manage_user.php">Manage User</a></li>
+                            <li><a href="Threshold.php">Threshold Setup</a></li>
+                        <?php endif; ?>
                     </ul>
                 </nav>
             </div>
             
             <div class="bottom-section">
-                <h3>USERNAME</h3>
-                <h3>Role</h3>
+                <h3>Welcome!</h3>
+                <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
+                <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
             <div class="bottom-section">
                 <h3>Language</h3>
@@ -103,7 +107,8 @@ $data = [
         </aside>
 
         <main class="main-dashboard">
-        <div class="dashboard-header">
+            <!-- Main content starts here -->
+            <div class="dashboard-header">
                 <div class="header-box">
                     <h3>Server Status</h3>
                     <p>Online</p>
@@ -158,12 +163,12 @@ $data = [
                         <tbody>
                             <?php foreach ($data["live_gas_table"] as $row): ?>
                                 <tr>
-                                    <td><?php echo $row["DeviceID"]; ?></td>
-                                    <td><?php echo $row["Gas Level"]; ?></td>
+                                    <td><?php echo htmlspecialchars($row["DeviceID"]); ?></td>
+                                    <td><?php echo htmlspecialchars($row["Gas Level"]); ?></td>
                                     <td class="<?php echo $row["Status"] ? 'status-detected' : 'status-not-detected'; ?>">
                                         <?php echo $row["Status"] ? 'Gas Detected' : 'No Gas Detected'; ?>
                                     </td>
-                                    <td><?php echo $row["Timestamp"]; ?></td>
+                                    <td><?php echo htmlspecialchars($row["Timestamp"]); ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
