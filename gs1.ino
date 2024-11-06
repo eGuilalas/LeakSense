@@ -59,7 +59,7 @@ WebServer server(80);
 void connectToWiFi();
 bool fetchThresholds();
 bool fetchEmailRecipients();
-bool sendGasDataAndGetRecipients(float gasValue, String gasType, int smokeStatus, int coStatus, int lpgStatus);
+bool sendGasData(float gasValue, String gasType, int smokeStatus, int coStatus, int lpgStatus);
 String detectGasType(float gasValue);
 void handleGasDetection(bool gasDetected);
 void displayGasLevel(float gasValue, String gasType);
@@ -101,7 +101,7 @@ void loop() {
   }
 
   int rawValue = analogRead(GAS_SENSOR_PIN);
-  float gasValue = (rawValue / 1023.0) * 1.0;
+  float gasValue = (rawValue / 1023.0) * 1.0; // Scale to 5V range
   String gasType = detectGasType(gasValue);
 
   displayGasLevel(gasValue, gasType);
@@ -119,11 +119,12 @@ void loop() {
        (gasType == "CO" && gasValue > CO_THRESHOLD) ||
        (gasType == "LPG" && gasValue > LPG_THRESHOLD)) && !emailSent) {
       
-      Serial.println("Threshold exceeded, attempting to send email...");
-      if (sendEmailNotification(gasValue, gasType)) {
+      Serial.println("Threshold exceeded, attempting to send gas data...");
+      if (sendGasData(gasValue, gasType, smokeStatus, coStatus, lpgStatus)) {
           emailSent = true;
+          Serial.println("Gas data sent successfully.");
       } else {
-          Serial.println("Email sending failed. Retrying...");
+          Serial.println("Failed to send gas data.");
       }
   } else if (gasValue < min(SMOKE_THRESHOLD, min(CO_THRESHOLD, LPG_THRESHOLD)) && emailSent) {
       Serial.println("Gas level below all thresholds, reset emailSent flag.");
@@ -280,6 +281,40 @@ void handleRoot() {
   html += "</body></html>";
   
   server.send(200, "text/html", html);
+}
+
+// Send gas data to the server
+bool sendGasData(float gasValue, String gasType, int smokeStatus, int coStatus, int lpgStatus) {
+    if (WiFi.status() == WL_CONNECTED) {
+        HTTPClient http;
+        http.begin(saveReadingsUrl);
+
+        // Prepare the POST data
+        String postData = "device_id=" + String(DEVICE_ID) +
+                          "&gas_level=" + String(gasValue) +
+                          "&gas_type=" + gasType +
+                          "&smoke_status=" + String(smokeStatus) +
+                          "&co_status=" + String(coStatus) +
+                          "&lpg_status=" + String(lpgStatus);
+
+        http.addHeader("Content-Type", "application/x-www-form-urlencoded"); // Set content type to URL encoded
+        int httpResponseCode = http.POST(postData); // Send POST request
+
+        // Check the response code
+        if (httpResponseCode > 0) {
+            String payload = http.getString();
+            Serial.printf("HTTP Response code: %d\n", httpResponseCode);
+            Serial.println("Response from server: " + payload);
+            http.end();
+            return true; // Data sent successfully
+        } else {
+            Serial.printf("Error sending data: %s\n", http.errorToString(httpResponseCode).c_str());
+        }
+        http.end();
+    } else {
+        Serial.println("WiFi not connected.");
+    }
+    return false; // Failed to send data
 }
 
 // Send email notification with recipients

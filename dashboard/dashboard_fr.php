@@ -7,11 +7,11 @@ if (!isset($_SESSION['user_id'])) {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaksense Dashboard</title>
+    <title>Tableau de Bord Leaksense</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
@@ -42,12 +42,12 @@ if (!isset($_SESSION['user_id'])) {
         .chart, .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; }
         table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
         table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-        .status-detected { color: red; font-weight: bold; }  /* For Gas Detected */
-        .status-not-detected { color: green; font-weight: bold; }  /* For No Gas Detected */
-        .online { color: green; }  /* Online status color */
-        .offline { color: red; }    /* Offline status color */
+        .status-detected { color: red; font-weight: bold; }  /* Pour Gaz Détecté */
+        .status-not-detected { color: green; font-weight: bold; }  /* Pour Aucun Gaz Détecté */
+        .online { color: green; }  /* Couleur pour l'état en ligne */
+        .offline { color: red; }    /* Couleur pour l'état hors ligne */
 
-        /* Bottom section styling */
+        /* Stylisation de la section inférieure */
         .bottom-section {
             border-top: 1px solid #444;
             padding-top: 20px;
@@ -65,62 +65,62 @@ if (!isset($_SESSION['user_id'])) {
     <div class="dashboard-container">
         <aside class="sidebar">
             <div>
-                <h2>Leaksense Dashboard</h2>
+                <h2>Tableau de Bord Leaksense</h2>
                 <nav>
                     <ul>
-                        <li><a href="#" class="active">Dashboard</a></li>
-                        <li><a href="gs1.php">ESP32-GasSensor 1</a></li>
-                        <li><a href="gs2.php">ESP32-GasSensor 2</a></li>
-                        <li><a href="Reports.php">Reports</a></li>
+                        <li><a href="#" class="active">Tableau de Bord</a></li>
+                        <li><a href="gs1_fr.php">ESP32-CapteurGaz 1</a></li>
+                        <li><a href="gs2_fr.php">ESP32-CapteurGaz 2</a></li>
+                        <li><a href="Reports.php">Rapports</a></li>
                         <?php if ($_SESSION['userrole'] !== 'user'): ?>
-                            <li><a href="manage_user.php">Manage User</a></li>
-                            <li><a href="Threshold.php">Threshold Setup</a></li>
+                            <li><a href="manage_user_fr.php">Gérer Utilisateurs</a></li>
+                            <li><a href="Threshold_fr.php">Paramètres de Seuil</a></li>
                         <?php endif; ?>
                     </ul>
                 </nav>
             </div>
             
             <div class="bottom-section">
-                <h3>Language</h3>
+                <h3>Langue</h3>
                 <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
-                <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
+                <h4>Rôle : <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
             <div class="bottom-section">
-                <h3>Language</h3>
-                <li><a href="dashboard_fr.php">French</a></li>
+                <h3>Langue</h3>
+                <li><a href="dashboard.php">English</a></li>
             </div>
             <div class="bottom-section">
-                <a href="../logout.php">Logout</a>
+                <a href="../logout.php">Déconnexion</a>
             </div>
         </aside>
 
         <main class="main-dashboard">
             <div class="dashboard-header">
                 <div class="header-box">
-                    <h3>Server Status</h3>
-                    <p id="serverStatus" class="online">Online</p> <!-- Dynamic status with initial class -->
+                    <h3>Statut du Serveur</h3>
+                    <p id="serverStatus" class="online">En Ligne</p> <!-- Statut dynamique avec classe initiale -->
                 </div>
                 <div class="header-box">
-                    <h3>ESP32-GasSensor 1 Status</h3>
-                    <p id="sensor1Status" class="online">...</p> <!-- Dynamic status with initial class -->
+                    <h3>Statut ESP32-CapteurGaz 1</h3>
+                    <p id="sensor1Status" class="online">...</p> <!-- Statut dynamique avec classe initiale -->
                 </div>
                 <div class="header-box">
-                    <h3>ESP32-GasSensor 2 Status</h3>
-                    <p id="sensor2Status" class="online">...</p> <!-- Dynamic status with initial class -->
+                    <h3>Statut ESP32-CapteurGaz 2</h3>
+                    <p id="sensor2Status" class="online">...</p> <!-- Statut dynamique avec classe initiale -->
                 </div>
             </div>
             <div class="dashboard-header">
                 <div class="header-box">
-                    <h3>Pending</h3>
-                    <p id="pendingCount" style="color: #36A2EB;">0</p> <!-- Color for Pending -->
+                    <h3>En Attente</h3>
+                    <p id="pendingCount" style="color: #36A2EB;">0</p> <!-- Couleur pour En Attente -->
                 </div>
                 <div class="header-box">
-                    <h3>Acknowledge</h3>
-                    <p id="acknowledgeCount" style="color: #FF6384;">0</p> <!-- Color for Acknowledge -->
+                    <h3>Acknowledgment</h3>
+                    <p id="acknowledgeCount" style="color: #FF6384;">0</p> <!-- Couleur pour Acknowledgment -->
                 </div>
                 <div class="header-box">
-                    <h3>False Alarm</h3>
-                    <p id="falseAlarmCount" style="color: #FFCE56;">0</p> <!-- Color for False Alarm -->
+                    <h3>Fausse Alarme</h3>
+                    <p id="falseAlarmCount" style="color: #FFCE56;">0</p> <!-- Couleur pour Fausse Alarme -->
                 </div>
             </div>
 
@@ -132,14 +132,14 @@ if (!isset($_SESSION['user_id'])) {
                     <canvas id="statusChart"></canvas>
                 </div>
                 <div class="table-container">
-                    <h3>Live Gas Table</h3>
+                    <h3>Tableau de Gaz en Direct</h3>
                     <table id="gasTable">
                         <thead>
                             <tr>
-                                <th>DeviceID</th>
-                                <th>Gas Level (ppm)</th>
-                                <th>Status</th>
-                                <th>Timestamp</th>
+                                <th>ID Appareil</th>
+                                <th>Niveau de Gaz (ppm)</th>
+                                <th>Statut</th>
+                                <th>Horodatage</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -163,15 +163,15 @@ if (!isset($_SESSION['user_id'])) {
                 { label: 'GS2', data: [], borderColor: '#36A2EB', fill: false }
             ]
         },
-        options: { responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Gas Level (ppm)' } } } }
+        options: { responsive: true, scales: { x: { title: { display: true, text: 'Heure' } }, y: { title: { display: true, text: 'Niveau de Gaz (ppm)' } } } }
     });
 
     let statusChart = new Chart(statusChartCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Pending', 'Acknowledge', 'False Alarm'],
+            labels: ['En Attente', 'Acknowledge', 'Fausse Alarme'],
             datasets: [{
-                data: [0, 0, 0], // Initial data
+                data: [0, 0, 0],
                 backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
             }]
         },
@@ -182,7 +182,6 @@ if (!isset($_SESSION['user_id'])) {
         fetch('../api/get_live_chart_data.php')
             .then(response => response.json())
             .then(data => {
-                console.log("Live Chart Data Response:", data);
                 if (data['ESP32-GasSensor1'] && data['ESP32-GasSensor1'].length > 0) {
                     liveGasChart.data.labels = data['ESP32-GasSensor1'].map(d => d.time);
                     liveGasChart.data.datasets[0].data = data['ESP32-GasSensor1'].map(d => d.ppm);
@@ -194,36 +193,34 @@ if (!isset($_SESSION['user_id'])) {
                 }
                 liveGasChart.update();
             })
-            .catch(error => console.error("Error fetching live chart data:", error));
+            .catch(error => console.error("Erreur lors de la récupération des données du graphique en direct:", error));
     }
 
     function fetchStatusData() {
         fetch('../api/get_status_data.php')
             .then(response => response.json())
             .then(data => {
-                console.log("Status Data Response:", data);
                 document.getElementById('pendingCount').innerText = data.pending;
                 document.getElementById('acknowledgeCount').innerText = data.acknowledge;
                 document.getElementById('falseAlarmCount').innerText = data.false_alarm;
                 statusChart.data.datasets[0].data = [data.pending, data.acknowledge, data.false_alarm];
                 statusChart.update();
             })
-            .catch(error => console.error("Error fetching status data:", error));
+            .catch(error => console.error("Erreur lors de la récupération des données de statut:", error));
     }
 
     function fetchLiveTableData() {
         fetch('../api/get_live_table_data.php')
             .then(response => response.json())
             .then(data => {
-                console.log("Live Table Data:", data);
                 const tableBody = document.querySelector("#gasTable tbody");
                 tableBody.innerHTML = "";
 
-                // Limit to 7 most recent entries
+                // Limiter aux 7 entrées les plus récentes
                 const latestEntries = data.slice(-7);
 
                 latestEntries.forEach(row => {
-                    const statusClass = row.status === "Gas Detected" ? 'status-detected' : 'status-not-detected';
+                    const statusClass = row.status === "Gaz Détecté" ? 'status-detected' : 'status-not-detected';
                     tableBody.innerHTML += `
                         <tr>
                             <td>${row.deviceID}</td>
@@ -233,34 +230,30 @@ if (!isset($_SESSION['user_id'])) {
                         </tr>`;
                 });
 
-                // Scroll to the bottom of the table
                 tableBody.scrollTop = tableBody.scrollHeight;
             })
-            .catch(error => console.error("Error fetching live table data:", error));
+            .catch(error => console.error("Erreur lors de la récupération des données de table en direct:", error));
     }
 
     function fetchDeviceStatus() {
-        fetch('../api/get_status.php') // Updated endpoint to fetch status
+        fetch('../api/get_status.php')
             .then(response => response.json())
             .then(data => {
-                console.log("Device Status Response:", data);
-                document.getElementById('serverStatus').innerText = data.server; // Update Server Status
-                document.getElementById('sensor1Status').innerText = data.GS1; // Update Sensor 1 Status
-                document.getElementById('sensor2Status').innerText = data.GS2; // Update Sensor 2 Status
+                document.getElementById('serverStatus').innerText = data.server === 'Online' ? 'En Ligne' : 'Hors Ligne';
+                document.getElementById('sensor1Status').innerText = data.GS1 === 'Online' ? 'En Ligne' : 'Hors Ligne';
+                document.getElementById('sensor2Status').innerText = data.GS2 === 'Online' ? 'En Ligne' : 'Hors Ligne';
 
-                // Change text color based on status
                 document.getElementById('serverStatus').className = data.server === 'Online' ? 'online' : 'offline';
                 document.getElementById('sensor1Status').className = data.GS1 === 'Online' ? 'online' : 'offline';
                 document.getElementById('sensor2Status').className = data.GS2 === 'Online' ? 'online' : 'offline';
             })
-            .catch(error => console.error("Error fetching device status:", error));
+            .catch(error => console.error("Erreur lors de la récupération de l'état de l'appareil:", error));
     }
 
-    // Set intervals for data fetching
     setInterval(fetchLiveChartData, 3000);
     setInterval(fetchStatusData, 3000);
     setInterval(fetchLiveTableData, 3000);
-    setInterval(fetchDeviceStatus, 1000); // Check device status every 5 seconds
+    setInterval(fetchDeviceStatus, 1000);
     </script>
 </body>
 </html>
