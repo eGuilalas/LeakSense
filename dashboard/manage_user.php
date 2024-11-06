@@ -1,9 +1,128 @@
 <?php
-// Example data for demonstration (replace with database queries in production)
-$users = [
-    ["username" => "johndoe", "userrole" => "admin", "type" => "corporate", "name" => "John Doe", "email" => "johndoe@example.com", "phone" => "123-456-7890", "address" => "123 Main St, City"],
-    ["username" => "janedoe", "userrole" => "user", "type" => "homeowner", "name" => "Jane Doe", "email" => "janedoe@example.com", "phone" => "987-654-3210", "address" => "456 Oak St, City"],
-];
+session_start();
+include '../db_connection.php'; // Include your database connection
+
+// Check if user is logged in
+if (!isset($_SESSION['userID'])) {
+    $_SESSION['error'] = "You must log in to access this page.";
+    header("Location: ../login.php");
+    exit();
+}
+
+// Initialize variables
+$username = '';
+$password = '';
+$userrole = '';
+$type = '';
+$name = '';
+$email = '';
+$phone = '';
+$address = '';
+$action = 'Add User';
+
+// Handle edit action
+if (isset($_GET['action']) && $_GET['action'] === 'edit' && isset($_GET['username'])) {
+    $username = $_GET['username'];
+
+    // Fetch user details from the database
+    $stmt = $pdo->prepare("SELECT * FROM user WHERE username = :username");
+    $stmt->execute(['username' => $username]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user) {
+        $userrole = $user['userrole'];
+        $type = $user['type'];
+        $name = $user['name'];
+        $email = $user['email'];
+        $phone = $user['phone'];
+        $address = $user['address'];
+        $action = 'Edit User';
+    }
+}
+
+// Handle form submission for adding or updating a user
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $username = $_POST['username'];
+    $password = !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : null;
+    $userrole = $_POST['userrole'];
+    $type = $_POST['type'];
+    $name = $_POST['name'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    $address = $_POST['address'];
+
+    // Validation
+    if (empty($username) || empty($userrole) || empty($type) || empty($name) || empty($email) || empty($phone) || empty($address)) {
+        $_SESSION['error'] = "All fields are required.";
+    } else {
+        // Check if the user already exists
+        $stmt = $pdo->prepare("SELECT * FROM user WHERE username = :username");
+        $stmt->execute(['username' => $username]);
+        $existingUser = $stmt->fetch();
+
+        if ($existingUser) {
+            // Update existing user
+            $updateQuery = "UPDATE user SET userrole = :userrole, type = :type, name = :name, email = :email, phone = :phone, address = :address";
+            $params = [
+                'userrole' => $userrole,
+                'type' => $type,
+                'name' => $name,
+                'email' => $email,
+                'phone' => $phone,
+                'address' => $address,
+                'username' => $username
+            ];
+            if ($password) {
+                $updateQuery .= ", password = :password";
+                $params['password'] = $password;
+            }
+            $updateQuery .= " WHERE username = :username";
+            $stmt = $pdo->prepare($updateQuery);
+            $stmt->execute($params);
+            $_SESSION['success'] = "User updated successfully.";
+        } else {
+            // Add new user
+            $stmt = $pdo->prepare("INSERT INTO user (username, password, userrole, type, name, email, phone, address) VALUES (:username, :password, :userrole, :type, :name, :email, :phone, :address)");
+            $stmt->execute([
+                'username' => $username,
+                'password' => $password,
+                'userrole' => $userrole,
+                'type' => $type,
+                'name' => $name,
+                'email' => $email,
+                'phone' => $phone,
+                'address' => $address
+            ]);
+            $_SESSION['success'] = "User added successfully.";
+        }
+        header("Location: manage_user.php");
+        exit();
+    }
+}
+
+// Handle delete user request
+if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['username'])) {
+    $usernameToDelete = $_GET['username'];
+    $stmt = $pdo->prepare("DELETE FROM user WHERE username = :username");
+    $stmt->execute(['username' => $usernameToDelete]);
+    $_SESSION['success'] = "User deleted successfully.";
+    header("Location: manage_user.php");
+    exit();
+}
+
+// Handle unlock action
+if (isset($_GET['action']) && $_GET['action'] === 'unlock' && isset($_GET['username'])) {
+    $usernameToUnlock = $_GET['username'];
+    $stmt = $pdo->prepare("UPDATE user SET login_attempt = 0, lockout_until = NULL WHERE username = :username");
+    $stmt->execute(['username' => $usernameToUnlock]);
+    $_SESSION['success'] = "User unlocked successfully.";
+    header("Location: manage_user.php");
+    exit();
+}
+
+// Fetch all users for the table
+$stmt = $pdo->query("SELECT * FROM user");
+$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -20,19 +139,8 @@ $users = [
         .sidebar h2 { color: #8D99AE; font-size: 1.5em; margin-bottom: 20px; }
         .sidebar ul { list-style: none; padding-left: 0; }
         .sidebar li { margin-bottom: 15px; }
-        .sidebar a {
-            text-decoration: none;
-            color: #D6D8E7;
-            font-size: 1em;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background-color: #F72585;
-            color: #fff;
-        }
+        .sidebar a { text-decoration: none; color: #D6D8E7; font-size: 1em; display: block; padding: 10px; border-radius: 5px; transition: background-color 0.2s; }
+        .sidebar a:hover, .sidebar a.active { background-color: #F72585; color: #fff; }
         
         .main-dashboard { flex: 1; padding: 20px; overflow-y: auto; }
         .form-container, .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
@@ -61,7 +169,6 @@ $users = [
         table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
         table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
         .action-buttons a { color: #F72585; text-decoration: none; margin-right: 10px; font-weight: bold; }
-        .search-container { margin-bottom: 10px; }
         
         /* Bottom section styling */
         .bottom-section {
@@ -76,11 +183,12 @@ $users = [
     </style>
     <script>
         function filterUsers() {
-            const filter = document.getElementById("searchName").value.toLowerCase();
+            const filter = document.getElementById("searchInput").value.toLowerCase();
             const rows = document.querySelectorAll("#userTable tbody tr");
             rows.forEach(row => {
+                const username = row.querySelector("td:nth-child(1)").innerText.toLowerCase();
                 const name = row.querySelector("td:nth-child(4)").innerText.toLowerCase();
-                row.style.display = name.includes(filter) ? "" : "none";
+                row.style.display = (username.includes(filter) || name.includes(filter)) ? "" : "none";
             });
         }
     </script>
@@ -103,54 +211,64 @@ $users = [
                 </nav>
             </div>
             <div class="bottom-section">
-                <h3>USERNAME</h3>
-                <h3>Role</h3>
+                <h3><?php echo htmlspecialchars($_SESSION['username']); ?></h3>
+                <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
             <div class="bottom-section">
                 <h3>Language</h3>
                 <h5>ENG - FR</h5>
             </div>
             <div class="bottom-section">
-                <a href="login.php">Logout</a>
+                <a href="../logout.php">Logout</a>
             </div>
         </aside>
 
         <main class="main-dashboard">
+            <?php if (isset($_SESSION['success'])): ?>
+                <div class="success-message" style="color: #36C36C; margin-bottom: 20px;">
+                    <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
+                </div>
+            <?php endif; ?>
+            <?php if (isset($_SESSION['error'])): ?>
+                <div class="error-message" style="color: #FF4571; margin-bottom: 20px;">
+                    <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                </div>
+            <?php endif; ?>
             <!-- Add New User Form -->
             <div class="form-container">
-                <h3>Add / Edit User</h3>
+                <h3><?php echo $action; ?></h3>
                 <form action="" method="post">
                     <label>Username</label>
-                    <input type="text" name="username" required>
+                    <input type="text" name="username" value="<?php echo htmlspecialchars($username); ?>" required <?php echo ($action === 'Edit User') ? 'readonly' : ''; ?>>
 
                     <label>Password</label>
-                    <input type="password" name="password" required>
+                    <input type="password" name="password" <?php echo ($action === 'Edit User') ? '' : 'required'; ?>>
 
                     <label>User Role</label>
                     <select name="userrole" required>
-                        <option value="admin">Admin</option>
-                        <option value="user">User</option>
-                        <option value="super_user">Super User</option>
-                        <option value="super_admin">Super Admin</option>
+                        <option value="admin" <?php echo ($userrole === 'admin') ? 'selected' : ''; ?>>Admin</option>
+                        <option value="user" <?php echo ($userrole === 'user') ? 'selected' : ''; ?>>User</option>
+                        <option value="super_user" <?php echo ($userrole === 'super_user') ? 'selected' : ''; ?>>Super User</option>
+                        <option value="super_admin" <?php echo ($userrole === 'super_admin') ? 'selected' : ''; ?>>Super Admin</option>
                     </select>
 
                     <label>Type</label>
                     <select name="type" required>
-                        <option value="corporate">Corporate</option>
-                        <option value="homeowner">Homeowner</option>
+                        <option value="corporate" <?php echo ($type === 'corporate') ? 'selected' : ''; ?>>Corporate</option>
+                        <option value="homeowner" <?php echo ($type === 'homeowner') ? 'selected' : ''; ?>>Homeowner</option>
                     </select>
 
                     <label>Name</label>
-                    <input type="text" name="name" required>
+                    <input type="text" name="name" value="<?php echo htmlspecialchars($name); ?>" required>
 
                     <label>Email</label>
-                    <input type="email" name="email" required>
+                    <input type="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
 
                     <label>Phone</label>
-                    <input type="text" name="phone" required>
+                    <input type="text" name="phone" value="<?php echo htmlspecialchars($phone); ?>" required>
 
                     <label>Address</label>
-                    <input type="text" name="address" required>
+                    <input type="text" name="address" value="<?php echo htmlspecialchars($address); ?>" required>
 
                     <div class="button-group">
                         <button type="submit">Save User</button>
@@ -163,8 +281,8 @@ $users = [
             <div class="table-container">
                 <h3>All Users</h3>
                 <div class="search-container">
-                    <label for="searchName">Search by Name:</label>
-                    <input type="text" id="searchName" onkeyup="filterUsers()" placeholder="Enter name to search">
+                    <label for="searchInput">Search by Username or Name:</label>
+                    <input type="text" id="searchInput" onkeyup="filterUsers()" placeholder="Enter username or name to search">
                 </div>
                 <table id="userTable">
                     <thead>
@@ -182,17 +300,17 @@ $users = [
                     <tbody>
                         <?php foreach ($users as $user): ?>
                             <tr>
-                                <td><?php echo $user["username"]; ?></td>
-                                <td><?php echo $user["userrole"]; ?></td>
-                                <td><?php echo $user["type"]; ?></td>
-                                <td><?php echo $user["name"]; ?></td>
-                                <td><?php echo $user["email"]; ?></td>
-                                <td><?php echo $user["phone"]; ?></td>
-                                <td><?php echo $user["address"]; ?></td>
+                                <td><?php echo htmlspecialchars($user["username"]); ?></td>
+                                <td><?php echo htmlspecialchars($user["userrole"]); ?></td>
+                                <td><?php echo htmlspecialchars($user["type"]); ?></td>
+                                <td><?php echo htmlspecialchars($user["name"]); ?></td>
+                                <td><?php echo htmlspecialchars($user["email"]); ?></td>
+                                <td><?php echo htmlspecialchars($user["phone"]); ?></td>
+                                <td><?php echo htmlspecialchars($user["address"]); ?></td>
                                 <td class="action-buttons">
-                                    <a href="edit_user.php?username=<?php echo $user["username"]; ?>">Edit</a>
-                                    <a href="delete_user.php?username=<?php echo $user["username"]; ?>" onclick="return confirm('Are you sure?')">Delete</a>
-                                    <a href="unlockaccount.php?username=<?php echo $user["username"]; ?>">Unlock</a>
+                                    <a href="?action=edit&username=<?php echo urlencode($user["username"]); ?>">Edit</a>
+                                    <a href="?action=delete&username=<?php echo urlencode($user["username"]); ?>" onclick="return confirm('Are you sure?')">Delete</a>
+                                    <a href="?action=unlock&username=<?php echo urlencode($user["username"]); ?>">Unlock</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
