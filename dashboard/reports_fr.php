@@ -1,15 +1,15 @@
 <?php
 session_start();
-include '../db_connection.php'; // Include your database connection
+include '../db_connection.php'; // Inclure la connexion à la base de données
 
-// Check if user is logged in
+// Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['userID'])) {
-    $_SESSION['error'] = "You must log in to access this page.";
+    $_SESSION['error'] = "Vous devez vous connecter pour accéder à cette page.";
     header("Location: ../login.php");
     exit();
 }
 
-// Initialize filter parameters
+// Initialiser les paramètres de filtrage
 $deviceID = $_GET['deviceID'] ?? '';
 $gasType = $_GET['gasType'] ?? '';
 $startDate = $_GET['startDate'] ?? '';
@@ -19,35 +19,35 @@ $endTime = $_GET['endTime'] ?? '';
 $alertStatus = $_GET['alertStatus'] ?? '';
 $acknowledgedBy = $_GET['acknowledgedBy'] ?? '';
 
-// Construct the base query
+// Construire la requête de base
 $query = "
     SELECT 
         sr.readingID AS ID,
-        sr.deviceID AS 'Device ID',
-        sr.ppm AS 'Gas Level',
+        sr.deviceID AS 'ID de l\'appareil',
+        sr.ppm AS 'Niveau de gaz',
         CASE 
-            WHEN sr.smoke_status = 1 THEN 'Smoke'
+            WHEN sr.smoke_status = 1 THEN 'Fumée'
             WHEN sr.co_status = 1 THEN 'CO'
-            WHEN sr.lpg_status = 1 THEN 'LPG'
-            ELSE 'No Gas'
-        END AS 'Gas Detected',
+            WHEN sr.lpg_status = 1 THEN 'GPL'
+            ELSE 'Aucun gaz'
+        END AS 'Gaz détecté',
         CASE 
-            WHEN sr.status = 1 THEN 'Pending'
-            WHEN sr.status = 2 THEN 'Acknowledged'
-            WHEN sr.status = 3 THEN 'False Alarm'
-            ELSE 'No Status'
-        END AS 'Alert Status',
-        u.username AS 'Acknowledged By',
-        sr.actionbytimestamp AS 'Response Time',
-        sr.comment AS 'Comments',
-        sr.timestamp AS 'Timestamp'
+            WHEN sr.status = 1 THEN 'En attente'
+            WHEN sr.status = 2 THEN 'Reconnu'
+            WHEN sr.status = 3 THEN 'Fausse alarme'
+            ELSE 'Pas de statut'
+        END AS 'Statut de l\'alerte',
+        u.username AS 'Reconnu par',
+        sr.actionbytimestamp AS 'Temps de réponse',
+        sr.comment AS 'Commentaires',
+        sr.timestamp AS 'Horodatage'
     FROM 
         sensor_reading sr
     LEFT JOIN 
         user u ON sr.actionby = u.userID
-    WHERE 1=1"; // Base condition to append filters
+    WHERE 1=1"; // Condition de base pour ajouter des filtres
 
-// Append filters based on user input
+// Ajouter des filtres en fonction des entrées de l'utilisateur
 if ($deviceID) {
     $query .= " AND sr.deviceID = :deviceID";
 }
@@ -62,13 +62,13 @@ if ($endDate && $endTime) {
 }
 if ($alertStatus) {
     switch ($alertStatus) {
-        case 'Pending':
+        case 'En attente':
             $query .= " AND sr.status = 1";
             break;
-        case 'Acknowledged':
+        case 'Reconnu':
             $query .= " AND sr.status = 2";
             break;
-        case 'False Alarm':
+        case 'Fausse alarme':
             $query .= " AND sr.status = 3";
             break;
     }
@@ -81,7 +81,7 @@ $query .= " ORDER BY sr.timestamp DESC";
 
 $stmt = $pdo->prepare($query);
 
-// Bind parameters if they were set
+// Lier les paramètres s'ils ont été définis
 if ($deviceID) {
     $stmt->bindParam(':deviceID', $deviceID);
 }
@@ -102,11 +102,11 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reports - Leaksense Dashboard</title>
+    <title>Rapports - Tableau de Bord Leaksense</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
@@ -151,7 +151,7 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .status-acknowledged { color: #36A2EB; font-weight: bold; }
         .status-false-alarm { color: #FF6384; font-weight: bold; }
 
-        /* Bottom section styling */
+        /* Stylisation de la section inférieure */
         .bottom-section {
             border-top: 1px solid #444;
             padding-top: 20px;
@@ -165,116 +165,114 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
+        <!-- Barre latérale -->
         <aside class="sidebar">
             <div>
-                <h2>Leaksense Dashboard</h2>
+                <h2>Tableau de Bord Leaksense</h2>
                 <nav>
                     <ul>
-                        <li><a href="dashboard.php">Dashboard</a></li>
-                        <li><a href="gs1.php">ESP32-GasSensor1</a></li>
-                        <li><a href="gs2.php">ESP32-GasSensor2</a></li>
-                        <li><a href="Reports.php" class="active">Reports</a></li>
-                        <li><a href="manage_user.php">Manage User</a></li>
-                        <li><a href="Threshold.php">Threshold Setup</a></li>
+                        <li><a href="dashboard_fr.php">Tableau de Bord</a></li>
+                        <li><a href="gs1_fr.php">ESP32-GasSensor1</a></li>
+                        <li><a href="gs2_fr.php">ESP32-GasSensor2</a></li>
+                        <li><a href="Reports_fr.php" class="active">Rapports</a></li>
+                        <li><a href="manage_user_fr.php">Gérer les Utilisateurs</a></li>
+                        <li><a href="Threshold_fr.php">Configurer les Seuils</a></li>
                     </ul>
                 </nav>
             </div>
             <div class="bottom-section">
                 <h3><?php echo htmlspecialchars($_SESSION['username']); ?></h3>
-                <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
+                <h4>Rôle : <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
             <div class="bottom-section">
-                <h3>Language</h3>
-                <li><a href="reports_fr.php">French</a></li>
+                <h3>Langue</h3>
+                <li><a href="reports.php">English</a></li>
             </div>
             <div class="bottom-section">
-                <a href="../logout.php">Logout</a>
+                <a href="../logout.php">Déconnexion</a>
             </div>
         </aside>
 
         <main class="main-dashboard">
-            <!-- Filter Section -->
+            <!-- Section de filtrage -->
             <div class="filter-section">
-                <h3>Filter Reports</h3>
+                <h3>Filtrer les Rapports</h3>
                 <div class="filter-group">
-                    <label>Device ID:</label>
+                    <label>ID de l'appareil :</label>
                     <select id="deviceID">
-                        <option value="">All Devices</option>
+                        <option value="">Tous les appareils</option>
                         <option value="GS1">ESP32-GasSensor1</option>
                         <option value="GS2">ESP32-GasSensor2</option>
                     </select>
 
-                    <label>Gas Type:</label>
+                    <label>Type de gaz :</label>
                     <select id="gasType">
-                        <option value="">All Types</option>
-                        <option value="Smoke">Smoke</option>
+                        <option value="">Tous les types</option>
+                        <option value="Fumée">Fumée</option>
                         <option value="CO">CO</option>
-                        <option value="LPG">LPG</option>
+                        <option value="GPL">GPL</option>
                     </select>
 
-                    <label>Start Date:</label>
+                    <label>Date de début :</label>
                     <input type="date" id="startDate">
 
-                    <label>Start Time:</label>
+                    <label>Heure de début :</label>
                     <input type="time" id="startTime">
 
-                    <label>End Date:</label>
+                    <label>Date de fin :</label>
                     <input type="date" id="endDate">
 
-                    <label>End Time:</label>
+                    <label>Heure de fin :</label>
                     <input type="time" id="endTime">
 
-                    <label>Alert Status:</label>
+                    <label>Statut de l'alerte :</label>
                     <select id="alertStatus">
-                        <option value="">Any</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Acknowledged">Acknowledged</option>
-                        <option value="False Alarm">False Alarm</option>
+                        <option value="">N'importe lequel</option>
+                        <option value="En attente">En attente</option>
+                        <option value="Reconnu">Reconnu</option>
+                        <option value="Fausse alarme">Fausse alarme</option>
                     </select>
 
-                    <label>Acknowledged By:</label>
-                    <input type="text" id="acknowledgedBy" placeholder="Enter username">
+                    <label>Reconnu par :</label>
+                    <input type="text" id="acknowledgedBy" placeholder="Entrez le nom d'utilisateur">
                 </div>
                 <div class="button-group">
-                    <button id="applyFilters">Apply Filters</button>
-                    <button id="resetFilters">Reset Filters</button>
-                    <button id="printReport">Print Report</button>
-                    <a href="../api/export_csv.php?deviceID=<?php echo urlencode($deviceID); ?>&gasType=<?php echo urlencode($gasType); ?>&startDate=<?php echo urlencode($startDate); ?>&startTime=<?php echo urlencode($startTime); ?>&endDate=<?php echo urlencode($endDate); ?>&endTime=<?php echo urlencode($endTime); ?>&alertStatus=<?php echo urlencode($alertStatus); ?>&acknowledgedBy=<?php echo urlencode($acknowledgedBy); ?>" class="export-button">Export to CSV</a>
+                    <button id="applyFilters">Appliquer les Filtres</button>
+                    <button id="resetFilters">Réinitialiser les Filtres</button>
+                    <button id="printReport">Imprimer le Rapport</button>
+                    <a href="../api/export_csv.php?deviceID=<?php echo urlencode($deviceID); ?>&gasType=<?php echo urlencode($gasType); ?>&startDate=<?php echo urlencode($startDate); ?>&startTime=<?php echo urlencode($startTime); ?>&endDate=<?php echo urlencode($endDate); ?>&endTime=<?php echo urlencode($endTime); ?>&alertStatus=<?php echo urlencode($alertStatus); ?>&acknowledgedBy=<?php echo urlencode($acknowledgedBy); ?>" class="export-button">Exporter en CSV</a>
                 </div>
             </div>
 
-            <!-- Report Table Section -->
+            <!-- Section du tableau des rapports -->
             <div class="table-container">
-                <h3>Report Table</h3>
+                <h3>Tableau des Rapports</h3>
                 <table>
                     <thead>
                         <tr>
-                            <!-- <th>ID</th> -->
-                            <th>Device ID</th>
-                            <th>Gas Level (ppm)</th>
-                            <th>Gas Detected</th>
-                            <th>Alert Status</th>
-                            <th>Acknowledged By</th>
-                            <th>Response Time</th>
-                            <th>Comments</th>
-                            <th>Timestamp</th>
+                            <th>ID de l'appareil</th>
+                            <th>Niveau de gaz (ppm)</th>
+                            <th>Gaz détecté</th>
+                            <th>Statut de l'alerte</th>
+                            <th>Reconnu par</th>
+                            <th>Temps de réponse</th>
+                            <th>Commentaires</th>
+                            <th>Horodatage</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php foreach ($report_data as $row): ?>
                             <tr>
-                                <!-- <td><?php echo $row["ID"]; ?></td> -->
-                                <td><?php echo $row["Device ID"]; ?></td>
-                                <td><?php echo $row["Gas Level"]; ?></td>
-                                <td><?php echo $row["Gas Detected"]; ?></td>
-                                <td class="<?php echo strtolower(str_replace(' ', '-', 'status-' . $row["Alert Status"])); ?>">
-                                    <?php echo $row["Alert Status"]; ?>
+                                <td><?php echo $row["ID de l'appareil"]; ?></td>
+                                <td><?php echo $row["Niveau de gaz"]; ?></td>
+                                <td><?php echo $row["Gaz détecté"]; ?></td>
+                                <td class="<?php echo strtolower(str_replace(' ', '-', 'status-' . $row["Statut de l'alerte"])); ?>">
+                                    <?php echo $row["Statut de l'alerte"]; ?>
                                 </td>
-                                <td><?php echo $row["Acknowledged By"]; ?></td>
-                                <td><?php echo $row["Response Time"] ? date("Y-m-d H:i:s", strtotime($row["Response Time"])) : 'N/A'; ?></td>
-                                <td><?php echo $row["Comments"]; ?></td>
-                                <td><?php echo $row["Timestamp"]; ?></td>
+                                <td><?php echo $row["Reconnu par"]; ?></td>
+                                <td><?php echo $row["Temps de réponse"] ? date("Y-m-d H:i:s", strtotime($row["Temps de réponse"])) : 'N/A'; ?></td>
+                                <td><?php echo $row["Commentaires"]; ?></td>
+                                <td><?php echo $row["Horodatage"]; ?></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -283,7 +281,7 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </main>
     </div>
     <script>
-        // Function to apply filters
+        // Fonction pour appliquer les filtres
         document.getElementById('applyFilters').addEventListener('click', function() {
             const deviceID = document.getElementById('deviceID').value;
             const gasType = document.getElementById('gasType').value;
@@ -294,14 +292,14 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             const alertStatus = document.getElementById('alertStatus').value;
             const acknowledgedBy = document.getElementById('acknowledgedBy').value;
 
-            // Create a query string with the filters
+            // Créer une chaîne de requête avec les filtres
             const queryString = `?deviceID=${deviceID}&gasType=${gasType}&startDate=${startDate}&startTime=${startTime}&endDate=${endDate}&endTime=${endTime}&alertStatus=${alertStatus}&acknowledgedBy=${acknowledgedBy}`;
 
-            // Redirect to the same page with query parameters
+            // Rediriger vers la même page avec les paramètres de requête
             window.location.href = window.location.pathname + queryString;
         });
 
-        // Reset filters
+        // Réinitialiser les filtres
         document.getElementById('resetFilters').addEventListener('click', function() {
             document.getElementById('deviceID').value = '';
             document.getElementById('gasType').value = '';
@@ -311,25 +309,25 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             document.getElementById('endTime').value = '';
             document.getElementById('alertStatus').value = '';
             document.getElementById('acknowledgedBy').value = '';
-            // Reset URL to clear filters
+            // Réinitialiser l'URL pour effacer les filtres
             window.history.pushState({}, document.title, window.location.pathname);
         });
 
-        // Print report
+        // Imprimer le rapport
         document.getElementById('printReport').addEventListener('click', function() {
             const printContent = document.querySelector('.table-container').innerHTML;
             const originalContent = document.body.innerHTML;
 
             document.body.innerHTML = printContent;
             window.print();
-            document.body.innerHTML = originalContent; // Restore original content after print
+            document.body.innerHTML = originalContent; // Restaurer le contenu original après impression
         });
 
-        // Apply filter on pressing enter key in Acknowledged By input
+        // Appliquer le filtre en appuyant sur la touche Entrée dans l'entrée Reconnu par
         document.getElementById('acknowledgedBy').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
-                event.preventDefault(); // Prevent default form submission
-                document.getElementById('applyFilters').click(); // Trigger apply filters
+                event.preventDefault(); // Empêcher la soumission du formulaire par défaut
+                document.getElementById('applyFilters').click(); // Déclencher l'application des filtres
             }
         });
     </script>

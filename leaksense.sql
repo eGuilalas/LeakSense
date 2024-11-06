@@ -260,7 +260,7 @@ BEGIN
         SELECT 1
         FROM sensor_reading sr
         WHERE sr.deviceID = d.deviceID
-        AND sr.timestamp > NOW() - INTERVAL 10 SECOND
+        AND sr.timestamp > NOW() - INTERVAL 5 SECOND
     );
 
     -- Update the status of devices to 1 if there is a recent reading
@@ -270,7 +270,7 @@ BEGIN
         SELECT 1
         FROM sensor_reading sr
         WHERE sr.deviceID = d.deviceID
-        AND sr.timestamp > NOW() - INTERVAL 10 SECOND
+        AND sr.timestamp > NOW() - INTERVAL 5 SECOND
     );
 END //
 
@@ -282,3 +282,52 @@ SET GLOBAL event_scheduler = ON;
 
 ALTER TABLE sensor_reading 
 ADD COLUMN comment VARCHAR(255) DEFAULT NULL;
+
+
+DELIMITER //
+
+CREATE EVENT populate_alert_table
+ON SCHEDULE EVERY 5 SECOND
+DO
+BEGIN
+    -- Insert alert for smoke detection
+    INSERT INTO alert (deviceID, readingID, email, gastype, gaslevel, thresholdlevel, timestamp)
+    SELECT sr.deviceID, sr.readingID, u.email, 'smoke' AS gastype, sr.ppm, t.smoke_threshold, NOW()
+    FROM sensor_reading sr
+    JOIN thresholds t ON sr.deviceID = t.deviceID
+    JOIN user u ON u.status = 0
+    WHERE sr.smoke_status = 1
+      AND NOT EXISTS (
+          SELECT 1 FROM alert a
+          WHERE a.readingID = sr.readingID AND a.gastype = 'smoke'
+      );
+
+    -- Insert alert for CO detection
+    INSERT INTO alert (deviceID, readingID, email, gastype, gaslevel, thresholdlevel, timestamp)
+    SELECT sr.deviceID, sr.readingID, u.email, 'co' AS gastype, sr.ppm, t.co_threshold, NOW()
+    FROM sensor_reading sr
+    JOIN thresholds t ON sr.deviceID = t.deviceID
+    JOIN user u ON u.status = 0
+    WHERE sr.co_status = 1
+      AND NOT EXISTS (
+          SELECT 1 FROM alert a
+          WHERE a.readingID = sr.readingID AND a.gastype = 'co'
+      );
+
+    -- Insert alert for LPG detection
+    INSERT INTO alert (deviceID, readingID, email, gastype, gaslevel, thresholdlevel, timestamp)
+    SELECT sr.deviceID, sr.readingID, u.email, 'lpg' AS gastype, sr.ppm, t.lpg_threshold, NOW()
+    FROM sensor_reading sr
+    JOIN thresholds t ON sr.deviceID = t.deviceID
+    JOIN user u ON u.status = 0
+    WHERE sr.lpg_status = 1
+      AND NOT EXISTS (
+          SELECT 1 FROM alert a
+          WHERE a.readingID = sr.readingID AND a.gastype = 'lpg'
+      );
+END //
+
+DELIMITER ;
+
+-- Ensure event scheduler is turned on
+SET GLOBAL event_scheduler = ON;

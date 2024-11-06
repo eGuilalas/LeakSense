@@ -1,15 +1,15 @@
 <?php
 session_start();
-include '../db_connection.php'; // Include your database connection
+include '../db_connection.php'; // Inclure votre connexion à la base de données
 
-// Check if user is logged in
+// Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['userID'])) {
-    $_SESSION['error'] = "You must log in to access this page.";
+    $_SESSION['error'] = "Vous devez vous connecter pour accéder à cette page.";
     header("Location: ../login.php");
     exit();
 }
 
-// Handle form submission for updating thresholds
+// Traitement de la soumission du formulaire pour mettre à jour les seuils
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gs1_smoke = (float)$_POST['sensor1_smoke'];
     $gs1_co = (float)$_POST['sensor1_co'];
@@ -19,20 +19,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $gs2_co = (float)$_POST['sensor2_co'];
     $gs2_lpg = (float)$_POST['sensor2_lpg'];
 
-    // Update thresholds for GS1
+    // Mettre à jour les seuils pour GS1
     $stmt = $pdo->prepare("UPDATE thresholds SET smoke_threshold = :smoke, co_threshold = :co, lpg_threshold = :lpg WHERE deviceID = 'GS1'");
     $stmt->execute(['smoke' => $gs1_smoke, 'co' => $gs1_co, 'lpg' => $gs1_lpg]);
 
-    // Update thresholds for GS2
+    // Mettre à jour les seuils pour GS2
     $stmt = $pdo->prepare("UPDATE thresholds SET smoke_threshold = :smoke, co_threshold = :co, lpg_threshold = :lpg WHERE deviceID = 'GS2'");
     $stmt->execute(['smoke' => $gs2_smoke, 'co' => $gs2_co, 'lpg' => $gs2_lpg]);
 
-    $_SESSION['success'] = "Thresholds updated successfully.";
+    $_SESSION['success'] = "Les seuils ont été mis à jour avec succès.";
     header("Location: threshold.php");
     exit();
 }
 
-// Fetch current thresholds from the database
+// Récupérer les seuils actuels dans la base de données
 $stmt = $pdo->query("SELECT * FROM thresholds");
 $thresholds = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -41,25 +41,11 @@ $gs2 = array_values(array_filter($thresholds, fn($t) => $t['deviceID'] === 'GS2'
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Threshold Setup - Leaksense Dashboard</title>
-    <!-- Add your CSS and JS here -->
-</head>
-<body>
-    <!-- Your HTML content here -->
-</body>
-</html>
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Threshold Setup - Leaksense Dashboard</title>
+    <title>Mise en place des seuils - Tableau de bord Leaksense</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
@@ -144,35 +130,35 @@ $gs2 = array_values(array_filter($thresholds, fn($t) => $t['deviceID'] === 'GS2'
         <!-- Sidebar -->
         <aside class="sidebar">
             <div>
-                <h2>Leaksense Dashboard</h2>
+                <h2>Tableau de bord Leaksense</h2>
                 <nav>
                     <ul>
-                        <li><a href="dashboard.php">Dashboard</a></li>
-                        <li><a href="gs1.php">ESP32-GasSensor 1</a></li>
-                        <li><a href="gs2.php">ESP32-GasSensor 2</a></li>
-                        <li><a href="Reports.php">Reports</a></li>
-                        <li><a href="manage_user.php">Manage User</a></li>
-                        <li><a href="threshold.php" class="active">Threshold Setup</a></li>
+                        <li><a href="dashboard_fr.php">Tableau de bord</a></li>
+                        <li><a href="gs1_fr.php">ESP32-GasSensor 1</a></li>
+                        <li><a href="gs2_fr.php">ESP32-GasSensor 2</a></li>
+                        <li><a href="Reports_fr.php">Rapports</a></li>
+                        <li><a href="manage_user_fr.php">Gérer les utilisateurs</a></li>
+                        <li><a href="#" class="active">Configuration des seuils</a></li>
                     </ul>
                 </nav>
             </div>
             <div class="bottom-section">
                 <h3><?php echo htmlspecialchars($_SESSION['username']); ?></h3>
-                <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
+                <h4>Rôle : <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
             <div class="bottom-section">
-                <h3>Language</h3>
-                <li><a href="threshold_fr.php">French</a></li>
+                <h3>Langue</h3>
+                <li><a href="threshold.php">English</a></li>
             </div>
             <div class="bottom-section">
-                <a href="../logout.php">Logout</a>
+                <a href="../logout.php">Déconnexion</a>
             </div>
         </aside>
 
         <!-- Main content -->
         <main class="main-dashboard">
             <div class="content-container">
-                <h3>Threshold Settings</h3>
+                <h3>Paramètres des seuils</h3>
                 <?php if (isset($_SESSION['success'])): ?>
                     <div class="warning" style="background-color: #D4EDDA; color: #155724;">
                         <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
@@ -184,33 +170,33 @@ $gs2 = array_values(array_filter($thresholds, fn($t) => $t['deviceID'] === 'GS2'
                     </div>
                 <?php endif; ?>
                 <div class="warning">
-                    <p>Warning: Ensure thresholds are set appropriately. Suggested thresholds are:</p>
+                    <p>Avertissement : Assurez-vous que les seuils sont correctement définis. Les seuils suggérés sont :</p>
                     <ul>
-                        <li>Smoke Threshold: 2.0</li>
-                        <li>CO Threshold: 3.0</li>
-                        <li>LPG Threshold: 4.0</li>
+                        <li>Seuil de fumée : 2.0</li>
+                        <li>Seuil de CO : 3.0</li>
+                        <li>Seuil de GPL : 4.0</li>
                     </ul>
                 </div>
 
                 <form method="post" action="">
-                    <!-- ESP32-GasSensor 1 Threshold Settings -->
+                    <!-- Seuils de l'ESP32-GasSensor 1 -->
                     <div class="threshold-group">
                         <div class="device-title">ESP32-GasSensor 1</div>
                         <div class="threshold-controls">
                             <div class="threshold-control">
-                                <label>Smoke Threshold:</label>
+                                <label>Seuil de fumée :</label>
                                 <button type="button" onclick="updateThreshold('sensor1_smoke', -0.1)">-</button>
                                 <input type="number" step="0.1" id="sensor1_smoke" name="sensor1_smoke" value="<?php echo htmlspecialchars($gs1['smoke_threshold']); ?>">
                                 <button type="button" onclick="updateThreshold('sensor1_smoke', 0.1)">+</button>
                             </div>
                             <div class="threshold-control">
-                                <label>CO Threshold:</label>
+                                <label>Seuil de CO :</label>
                                 <button type="button" onclick="updateThreshold('sensor1_co', -0.1)">-</button>
                                 <input type="number" step="0.1" id="sensor1_co" name="sensor1_co" value="<?php echo htmlspecialchars($gs1['co_threshold']); ?>">
                                 <button type="button" onclick="updateThreshold('sensor1_co', 0.1)">+</button>
                             </div>
                             <div class="threshold-control">
-                                <label>LPG Threshold:</label>
+                                <label>Seuil de GPL :</label>
                                 <button type="button" onclick="updateThreshold('sensor1_lpg', -0.1)">-</button>
                                 <input type="number" step="0.1" id="sensor1_lpg" name="sensor1_lpg" value="<?php echo htmlspecialchars($gs1['lpg_threshold']); ?>">
                                 <button type="button" onclick="updateThreshold('sensor1_lpg', 0.1)">+</button>
@@ -218,24 +204,24 @@ $gs2 = array_values(array_filter($thresholds, fn($t) => $t['deviceID'] === 'GS2'
                         </div>
                     </div>
 
-                    <!-- ESP32-GasSensor 2 Threshold Settings -->
+                    <!-- Seuils de l'ESP32-GasSensor 2 -->
                     <div class="threshold-group">
                         <div class="device-title">ESP32-GasSensor 2</div>
                         <div class="threshold-controls">
                             <div class="threshold-control">
-                                <label>Smoke Threshold:</label>
+                                <label>Seuil de fumée :</label>
                                 <button type="button" onclick="updateThreshold('sensor2_smoke', -0.1)">-</button>
                                 <input type="number" step="0.1" id="sensor2_smoke" name="sensor2_smoke" value="<?php echo htmlspecialchars($gs2['smoke_threshold']); ?>" readonly>
                                 <button type="button" onclick="updateThreshold('sensor2_smoke', 0.1)">+</button>
                             </div>
                             <div class="threshold-control">
-                                <label>CO Threshold:</label>
+                                <label>Seuil de CO :</label>
                                 <button type="button" onclick="updateThreshold('sensor2_co', -0.1)">-</button>
                                 <input type="number" step="0.1" id="sensor2_co" name="sensor2_co" value="<?php echo htmlspecialchars($gs2['co_threshold']); ?>" readonly>
                                 <button type="button" onclick="updateThreshold('sensor2_co', 0.1)">+</button>
                             </div>
                             <div class="threshold-control">
-                                <label>LPG Threshold:</label>
+                                <label>Seuil de GPL :</label>
                                 <button type="button" onclick="updateThreshold('sensor2_lpg', -0.1)">-</button>
                                 <input type="number" step="0.1" id="sensor2_lpg" name="sensor2_lpg" value="<?php echo htmlspecialchars($gs2['lpg_threshold']); ?>" readonly>
                                 <button type="button" onclick="updateThreshold('sensor2_lpg', 0.1)">+</button>
@@ -243,7 +229,7 @@ $gs2 = array_values(array_filter($thresholds, fn($t) => $t['deviceID'] === 'GS2'
                         </div>
                     </div>
 
-                    <button class="save-btn" type="submit">Save Changes</button>
+                    <button class="save-btn" type="submit">Sauvegarder les modifications</button>
                 </form>
             </div>
         </main>

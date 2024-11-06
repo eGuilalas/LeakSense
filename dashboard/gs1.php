@@ -182,6 +182,7 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </ul>
                 </nav>
             </div>
+
             <div class="bottom-section">
                 <h3>Welcome!</h3>
                 <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
@@ -189,7 +190,7 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
             <div class="bottom-section">
                 <h3>Language</h3>
-                <h5>ENG - FR</h5>
+                <li><a href="gs1_fr.php">French</a></li>
             </div>
             <div class="bottom-section">
                 <a href="../logout.php">Logout</a>
