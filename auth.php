@@ -42,9 +42,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $resetStmt->execute();
 
             // Store user information in the session
-            $_SESSION['user_id'] = $user['userID'];
+            $_SESSION['userID'] = $user['userID']; // Use userID as 'userID' not 'user_id'
             $_SESSION['username'] = $user['username'];
             $_SESSION['userrole'] = $user['userrole'];
+
+            // Debug: Print session variables to verify they are set correctly
+            error_log("User logged in: " . print_r($_SESSION, true)); // Log session details
 
             // Redirect to the dashboard
             header("Location: http://localhost/leaksense/dashboard/dashboard.php");

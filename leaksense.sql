@@ -280,3 +280,5 @@ DELIMITER ;
 SET GLOBAL event_scheduler = ON;
 
 
+ALTER TABLE sensor_reading 
+ADD COLUMN comment VARCHAR(255) DEFAULT NULL;

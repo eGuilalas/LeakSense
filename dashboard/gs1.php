@@ -1,12 +1,76 @@
 <?php
-// PHP backend logic (example data for demonstration purposes)
-$data = [
-    "gas_readings" => [
-        ["Gas Level" => 45, "Gas Detected" => "Smoke", "Timestamp" => "2024-11-01 10:00", "Alert Status" => "Pending", "Actioned By" => "User1", "Comment" => "High reading", "Response Time" => "5 mins"],
-        ["Gas Level" => 38, "Gas Detected" => "LPG", "Timestamp" => "2024-11-02 11:30", "Alert Status" => "Acknowledged", "Actioned By" => "User2", "Comment" => "Monitored", "Response Time" => "10 mins"],
-        ["Gas Level" => 52, "Gas Detected" => "CO", "Timestamp" => "2024-11-03 12:45", "Alert Status" => "False Alarm", "Actioned By" => "User3", "Comment" => "Sensor error", "Response Time" => "8 mins"],
-    ]
-];
+session_start(); // Start the session
+include '../db_connection.php'; // Include your database connection
+
+// Check if user is logged in
+if (!isset($_SESSION['userID'])) {
+    // Redirect to login page
+    $_SESSION['error'] = "You must log in to access this page.";
+    header("Location: ../login.php");
+    exit();
+}
+
+// Handle form submission for acknowledging or false alarm
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
+    $action = $_POST['action'];
+    $readingID = $_POST['readingID'];
+    $comment = $_POST['comment'];
+
+    // Determine the status based on the action
+    $status = ($action == 'acknowledge') ? 2 : 3; // 2 for Acknowledged, 3 for False Alarm
+
+    // Fetch the logged-in user's ID from the session
+    $userID = $_SESSION['userID']; // Assuming userID is stored in the session on login
+
+    // Update the database with the new status, comment, and user action
+    $updateQuery = "
+        UPDATE sensor_reading 
+        SET status = :status, comment = :comment, actionby = :actionby, actionbytimestamp = NOW() 
+        WHERE readingID = :readingID
+    ";
+
+    $updateStmt = $pdo->prepare($updateQuery);
+    $updateStmt->bindParam(':status', $status);
+    $updateStmt->bindParam(':comment', $comment);
+    $updateStmt->bindParam(':actionby', $userID);
+    $updateStmt->bindParam(':readingID', $readingID);
+    
+    if ($updateStmt->execute()) {
+        echo "<script>alert('Action recorded successfully.');</script>";
+    } else {
+        echo "<script>alert('Failed to record action.');</script>";
+    }
+}
+
+// Fetch gas readings from the database with specified alert status for GS1
+$query = "
+    SELECT 
+        sr.readingID, 
+        sr.deviceID, 
+        sr.ppm, 
+        sr.smoke_status, 
+        sr.co_status, 
+        sr.lpg_status, 
+        sr.timestamp, 
+        sr.status, 
+        u.username AS actioned_by,
+        sr.comment, 
+        sr.actionbytimestamp -- Select the actual actionbytimestamp
+    FROM 
+        sensor_reading sr
+    JOIN 
+        device d ON sr.deviceID = d.deviceID
+    LEFT JOIN 
+        `user` u ON sr.actionby = u.userID  
+    WHERE 
+        sr.deviceID = 'GS1' AND sr.status IN (1, 2, 3)
+    ORDER BY 
+        sr.timestamp DESC
+";
+
+$stmt = $pdo->prepare($query);
+$stmt->execute();
+$gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -54,8 +118,51 @@ $data = [
         .status-pending { color: #36A2EB; font-weight: bold; }
         .status-acknowledged { color: #FF6384; font-weight: bold; }
         .status-false-alarm { color: #FFCE56; font-weight: bold; }
-        .action-link { color: #F72585; cursor: pointer; text-decoration: underline; }
-        .action-link:hover { color: #FF6384; }
+        .action-button {
+            background-color: #FF6384; /* Acknowledge button color */
+            color: white; /* Text color */
+            border: none; /* No border */
+            padding: 10px 15px; /* Padding for size */
+            border-radius: 5px; /* Rounded corners */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: background-color 0.3s; /* Smooth background transition */
+            font-size: 14px; /* Font size */
+        }
+        .action-button.false-alarm {
+            background-color: #FFCE56; /* False Alarm button color */
+        }
+        .action-button:hover {
+            opacity: 0.8; /* Slightly dim the button on hover */
+        }
+        .popup {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
+            z-index: 999; /* Sit on top */
+        }
+        .popup-content {
+            background-color: #fefefe;
+            margin: 15% auto; /* 15% from the top and centered */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%; /* Could be more or less, depending on screen size */
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -76,15 +183,16 @@ $data = [
                 </nav>
             </div>
             <div class="bottom-section">
-                <h3>USERNAME</h3>
-                <h3>Role</h3>
+                <h3>Welcome!</h3>
+                <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
+                <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
             <div class="bottom-section">
                 <h3>Language</h3>
                 <h5>ENG - FR</h5>
             </div>
             <div class="bottom-section">
-                <a href="login.php">Logout</a>
+                <a href="../logout.php">Logout</a>
             </div>
         </aside>
         
@@ -93,15 +201,15 @@ $data = [
             <div class="dashboard-header">
                 <div class="header-box">
                     <h3>Pending</h3>
-                    <p>1</p>
+                    <p><?php echo count(array_filter($gas_readings, fn($reading) => $reading['status'] == 1)); ?></p>
                 </div>
                 <div class="header-box">
                     <h3>Acknowledge</h3>
-                    <p>2</p>
+                    <p><?php echo count(array_filter($gas_readings, fn($reading) => $reading['status'] == 2)); ?></p>
                 </div>
                 <div class="header-box">
                     <h3>False Alarm</h3>
-                    <p>3</p>
+                    <p><?php echo count(array_filter($gas_readings, fn($reading) => $reading['status'] == 3)); ?></p>
                 </div>
             </div>
 
@@ -127,26 +235,46 @@ $data = [
                             <th>Timestamp</th>
                             <th>Alert Status</th>
                             <th>Actioned By</th>
-                            <th>Comment</th>
                             <th>Response Time</th>
+                            <th>Comment</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="gasReadingsTable">
-                        <?php foreach ($data["gas_readings"] as $reading): ?>
-                            <tr data-status="<?php echo strtolower(str_replace(' ', '-', $reading["Alert Status"])); ?>">
-                                <td><?php echo $reading["Gas Level"]; ?></td>
-                                <td><?php echo $reading["Gas Detected"]; ?></td>
-                                <td><?php echo $reading["Timestamp"]; ?></td>
-                                <td class="<?php echo 'status-' . strtolower(str_replace(' ', '-', $reading["Alert Status"])); ?>">
-                                    <?php echo $reading["Alert Status"]; ?>
-                                </td>
-                                <td><?php echo $reading["Actioned By"]; ?></td>
-                                <td><?php echo $reading["Comment"]; ?></td>
-                                <td><?php echo $reading["Response Time"]; ?></td>
+                        <?php foreach ($gas_readings as $reading): ?>
+                            <tr data-status="<?php echo strtolower($reading["status"]); ?>">
+                                <td><?php echo $reading["ppm"]; ?></td>
                                 <td>
-                                    <span class="action-link">Acknowledge</span> | 
-                                    <span class="action-link">False Alarm</span>
+                                    <?php 
+                                    if ($reading["smoke_status"] == 1) {
+                                        echo "Smoke Detected";
+                                    } elseif ($reading["co_status"] == 1) {
+                                        echo "CO Detected";
+                                    } elseif ($reading["lpg_status"] == 1) {
+                                        echo "LPG Detected";
+                                    } else {
+                                        echo "No Gas Detected";
+                                    }
+                                    ?>
+                                </td>
+                                <td><?php echo $reading["timestamp"]; ?></td>
+                                <td class="<?php echo 'status-' . ($reading['status'] == 1 ? 'pending' : ($reading['status'] == 2 ? 'acknowledged' : 'false-alarm')); ?>">
+                                    <?php 
+                                    if ($reading["status"] == 1) {
+                                        echo "Pending";
+                                    } elseif ($reading["status"] == 2) {
+                                        echo "Acknowledged";
+                                    } elseif ($reading["status"] == 3) {
+                                        echo "False Alarm";
+                                    }
+                                    ?>
+                                </td>
+                                <td><?php echo $reading["actioned_by"]; ?></td>
+                                <td><?php echo $reading["actionbytimestamp"]; ?></td> <!-- Show actionbytimestamp -->
+                                <td><?php echo $reading["comment"] ? $reading["comment"] : 'No comment'; ?></td> <!-- Display comment -->
+                                <td>
+                                    <button class="action-button acknowledge-button" onclick="openPopup('<?php echo $reading['readingID']; ?>', 'acknowledge')">Acknowledge</button> 
+                                    <button class="action-button false-alarm-button" onclick="openPopup('<?php echo $reading['readingID']; ?>', 'false_alarm')">False Alarm</button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -156,16 +284,42 @@ $data = [
         </main>
     </div>
 
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <span class="close" onclick="closePopup()">&times;</span>
+            <h2 id="popupTitle">Enter Comment</h2>
+            <form id="popupForm" method="POST">
+                <input type="hidden" name="readingID" id="readingID">
+                <input type="hidden" name="action" id="action">
+                <input type="text" name="comment" placeholder="Enter comment" required>
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
     <script>
         function filterStatus(status) {
             const rows = document.querySelectorAll("#gasReadingsTable tr");
             rows.forEach(row => {
-                if (status === "" || row.getAttribute("data-status") === status.toLowerCase().replace(" ", "-")) {
+                const rowStatus = row.getAttribute("data-status");
+                if (status === "" || (status === "Pending" && rowStatus == 1) || 
+                    (status === "Acknowledged" && rowStatus == 2) || 
+                    (status === "False Alarm" && rowStatus == 3)) {
                     row.style.display = "";
                 } else {
                     row.style.display = "none";
                 }
             });
+        }
+
+        function openPopup(readingID, action) {
+            document.getElementById('readingID').value = readingID;
+            document.getElementById('action').value = action;
+            document.getElementById('popup').style.display = 'block';
+        }
+
+        function closePopup() {
+            document.getElementById('popup').style.display = 'none';
         }
     </script>
 </body>

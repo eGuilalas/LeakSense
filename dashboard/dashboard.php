@@ -1,6 +1,9 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id'])) {
+
+if (!isset($_SESSION['userID'])) {
+    // Redirect to login page
+    $_SESSION['error'] = "You must log in to access this page.";
     header("Location: ../login.php");
     exit();
 }
@@ -81,7 +84,7 @@ if (!isset($_SESSION['user_id'])) {
             </div>
             
             <div class="bottom-section">
-                <h3>Language</h3>
+                <h3>Welcome!</h3>
                 <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
                 <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>

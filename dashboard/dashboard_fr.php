@@ -81,7 +81,7 @@ if (!isset($_SESSION['user_id'])) {
             </div>
             
             <div class="bottom-section">
-                <h3>Langue</h3>
+                <h3>Welcome!</h3>
                 <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
                 <h4>Rôle : <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
