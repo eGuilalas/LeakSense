@@ -1,6 +1,9 @@
 <?php
 session_start();
-if (!isset($_SESSION['user_id'])) {
+
+if (!isset($_SESSION['userID'])) {
+    // Redirect to login page
+    $_SESSION['error'] = "You must log in to access this page.";
     header("Location: ../login.php");
     exit();
 }
