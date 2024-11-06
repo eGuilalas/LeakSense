@@ -2,7 +2,7 @@
 include_once '../db_connection.php'; // Make sure the correct path to db_connection.php is used
 
 // Retrieve active recipients
-$sql = "SELECT email FROM user WHERE status = 0 AND userrole IN ('admin', 'super_user', 'user', 'super_admin')";
+$sql = "SELECT email FROM user WHERE status = 0";
 
 try {
     $stmt = $pdo->prepare($sql);
