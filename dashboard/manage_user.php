@@ -211,6 +211,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </nav>
             </div>
             <div class="bottom-section">
+            <h3>Welcome!</h3>
                 <h3><?php echo htmlspecialchars($_SESSION['username']); ?></h3>
                 <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>

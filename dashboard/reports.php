@@ -168,19 +168,22 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <!-- Sidebar -->
         <aside class="sidebar">
             <div>
-                <h2>Leaksense Dashboard</h2>
+                <h2>Reports Dashboard</h2>
                 <nav>
                     <ul>
                         <li><a href="dashboard.php">Dashboard</a></li>
                         <li><a href="gs1.php">ESP32-GasSensor1</a></li>
                         <li><a href="gs2.php">ESP32-GasSensor2</a></li>
                         <li><a href="Reports.php" class="active">Reports</a></li>
-                        <li><a href="manage_user.php">Manage User</a></li>
-                        <li><a href="Threshold.php">Threshold Setup</a></li>
+                        <?php if ($_SESSION['userrole'] !== 'user'): ?>
+                            <li><a href="manage_user.php">Manage User</a></li>
+                            <li><a href="Threshold.php">Threshold Setup</a></li>
+                        <?php endif; ?>
                     </ul>
                 </nav>
             </div>
             <div class="bottom-section">
+            <h3>Welcome!</h3>
                 <h3><?php echo htmlspecialchars($_SESSION['username']); ?></h3>
                 <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>

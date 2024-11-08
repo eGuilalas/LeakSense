@@ -175,12 +175,15 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <li><a href="gs1_fr.php">ESP32-GasSensor1</a></li>
                         <li><a href="gs2_fr.php">ESP32-GasSensor2</a></li>
                         <li><a href="Reports_fr.php" class="active">Rapports</a></li>
-                        <li><a href="manage_user_fr.php">Gérer les Utilisateurs</a></li>
-                        <li><a href="Threshold_fr.php">Configurer les Seuils</a></li>
+                        <?php if ($_SESSION['userrole'] !== 'user'): ?>
+                            <li><a href="manage_user_fr.php">Manage User</a></li>
+                            <li><a href="Threshold_fr.php">Threshold Setup</a></li>
+                        <?php endif; ?>
                     </ul>
                 </nav>
             </div>
             <div class="bottom-section">
+            <h3>Bienvenue !</h3>
                 <h3><?php echo htmlspecialchars($_SESSION['username']); ?></h3>
                 <h4>Rôle : <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>

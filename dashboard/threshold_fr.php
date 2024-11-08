@@ -143,6 +143,7 @@ $gs2 = array_values(array_filter($thresholds, fn($t) => $t['deviceID'] === 'GS2'
                 </nav>
             </div>
             <div class="bottom-section">
+            <h3>Bienvenue !</h3>
                 <h3><?php echo htmlspecialchars($_SESSION['username']); ?></h3>
                 <h4>Rôle : <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
