@@ -18,7 +18,6 @@ $query = "
         email,
         gastype,
         gaslevel,
-        thresholdlevel,
         timestamp,
         status
     FROM 
