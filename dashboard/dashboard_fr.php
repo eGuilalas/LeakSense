@@ -78,6 +78,7 @@ if (!isset($_SESSION['userID'])) {
                         <?php if ($_SESSION['userrole'] !== 'user'): ?>
                             <li><a href="manage_user_fr.php">Gérer Utilisateurs</a></li>
                             <li><a href="Threshold_fr.php">Paramètres de Seuil</a></li>
+                            <li><a href="email_alert_report_fr.php">Email Alert Report</a></li>
                         <?php endif; ?>
                     </ul>
                 </nav>

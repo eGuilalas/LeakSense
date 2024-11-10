@@ -178,8 +178,9 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <li><a href="#" class="active">ESP32-CapteurGaz2</a></li>
                         <li><a href="Reports_fr.php">Rapports</a></li>
                         <?php if ($_SESSION['userrole'] !== 'user'): ?>
-                            <li><a href="manage_user_fr.php">Manage User</a></li>
-                            <li><a href="Threshold_fr.php">Threshold Setup</a></li>
+                            <li><a href="manage_user_fr.php">Gérer les Utilisateurs</a></li>
+                            <li><a href="Threshold_fr.php">Configurer les Seuils</a></li>
+                            <li><a href="email_alert_report_fr.php">Email Alert Report</a></li>
                         <?php endif; ?>
                     </ul>
                 </nav>

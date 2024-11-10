@@ -207,6 +207,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <li><a href="Reports.php">Reports</a></li>
                         <li><a href="manage_user.php" class="active">Manage User</a></li>
                         <li><a href="Threshold.php">Threshold Setup</a></li>
+                        <li><a href="email_alert_report.php">Email Alert Report</a></li>
                     </ul>
                 </nav>
             </div>

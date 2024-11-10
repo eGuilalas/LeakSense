@@ -178,6 +178,7 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php if ($_SESSION['userrole'] !== 'user'): ?>
                             <li><a href="manage_user.php">Manage User</a></li>
                             <li><a href="Threshold.php">Threshold Setup</a></li>
+                            <li><a href="email_alert_report.php">Email Alert Report</a></li>
                         <?php endif; ?>
                     </ul>
                 </nav>

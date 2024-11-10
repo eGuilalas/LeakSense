@@ -202,11 +202,12 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <nav>
                     <ul>
                         <li><a href="dashboard_fr.php">Tableau de Bord</a></li>
-                        <li><a href="gs1_fr.php">ESP32-GasSensor1</a></li>
-                        <li><a href="gs2_fr.php">ESP32-GasSensor2</a></li>
+                        <li><a href="gs1_fr.php">ESP32-CapteurGaz1</a></li>
+                        <li><a href="gs2_fr.php">ESP32-CapteurGaz2</a></li>
                         <li><a href="Reports_fr.php">Rapports</a></li>
                         <li><a href="#" class="active">Gérer les Utilisateurs</a></li>
                         <li><a href="Threshold_fr.php">Configurer les Seuils</a></li>
+                        <li><a href="email_alert_report_fr.php">Email Alert Report</a></li>
                     </ul>
                 </nav>
             </div>

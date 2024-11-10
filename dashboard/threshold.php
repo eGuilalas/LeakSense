@@ -153,6 +153,7 @@ $gs2 = array_values(array_filter($thresholds, fn($t) => $t['deviceID'] === 'GS2'
                         <li><a href="Reports.php">Reports</a></li>
                         <li><a href="manage_user.php">Manage User</a></li>
                         <li><a href="threshold.php" class="active">Threshold Setup</a></li>
+                        <li><a href="email_alert_report.php">Email Alert Report</a></li>
                     </ul>
                 </nav>
             </div>
@@ -226,19 +227,19 @@ $gs2 = array_values(array_filter($thresholds, fn($t) => $t['deviceID'] === 'GS2'
                             <div class="threshold-control">
                                 <label>Smoke Threshold:</label>
                                 <button type="button" onclick="updateThreshold('sensor2_smoke', -0.1)">-</button>
-                                <input type="number" step="0.1" id="sensor2_smoke" name="sensor2_smoke" value="<?php echo htmlspecialchars($gs2['smoke_threshold']); ?>" readonly>
+                                <input type="number" step="0.1" id="sensor2_smoke" name="sensor2_smoke" value="<?php echo htmlspecialchars($gs2['smoke_threshold']); ?>">
                                 <button type="button" onclick="updateThreshold('sensor2_smoke', 0.1)">+</button>
                             </div>
                             <div class="threshold-control">
                                 <label>CO Threshold:</label>
                                 <button type="button" onclick="updateThreshold('sensor2_co', -0.1)">-</button>
-                                <input type="number" step="0.1" id="sensor2_co" name="sensor2_co" value="<?php echo htmlspecialchars($gs2['co_threshold']); ?>" readonly>
+                                <input type="number" step="0.1" id="sensor2_co" name="sensor2_co" value="<?php echo htmlspecialchars($gs2['co_threshold']); ?>">
                                 <button type="button" onclick="updateThreshold('sensor2_co', 0.1)">+</button>
                             </div>
                             <div class="threshold-control">
                                 <label>LPG Threshold:</label>
                                 <button type="button" onclick="updateThreshold('sensor2_lpg', -0.1)">-</button>
-                                <input type="number" step="0.1" id="sensor2_lpg" name="sensor2_lpg" value="<?php echo htmlspecialchars($gs2['lpg_threshold']); ?>" readonly>
+                                <input type="number" step="0.1" id="sensor2_lpg" name="sensor2_lpg" value="<?php echo htmlspecialchars($gs2['lpg_threshold']); ?>">
                                 <button type="button" onclick="updateThreshold('sensor2_lpg', 0.1)">+</button>
                             </div>
                         </div>

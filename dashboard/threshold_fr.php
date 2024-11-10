@@ -138,7 +138,8 @@ $gs2 = array_values(array_filter($thresholds, fn($t) => $t['deviceID'] === 'GS2'
                         <li><a href="gs2_fr.php">ESP32-GasSensor 2</a></li>
                         <li><a href="Reports_fr.php">Rapports</a></li>
                         <li><a href="manage_user_fr.php">Gérer les utilisateurs</a></li>
-                        <li><a href="#" class="active">Configuration des seuils</a></li>
+                        <li><a href="threshold_fr.php" class="active">Configuration des seuils</a></li>
+                        <li><a href="email_alert_report_fr.php">Email Alert Report</a></li>
                     </ul>
                 </nav>
             </div>
