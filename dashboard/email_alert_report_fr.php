@@ -115,7 +115,6 @@ $email_alert_reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <th>Email</th>
                             <th>Gas Type</th>
                             <th>Gas Level (ppm)</th>
-                            <th>Threshold Level</th>
                             <th>Timestamp</th>
                             <th>Status</th>
                         </tr>
@@ -128,7 +127,6 @@ $email_alert_reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <td><?php echo htmlspecialchars($report['email']); ?></td>
                                 <td><?php echo htmlspecialchars($report['gastype']); ?></td>
                                 <td><?php echo htmlspecialchars($report['gaslevel']); ?></td>
-                                <!-- <td><?php echo htmlspecialchars($report['thresholdlevel']); ?></td> -->
                                 <td><?php echo htmlspecialchars($report['timestamp']); ?></td>
                                 <td><?php echo htmlspecialchars($report['status'] == 1 ? 'Sent Successfully' : 'Failed'); ?></td>
                             </tr>

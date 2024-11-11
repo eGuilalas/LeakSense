@@ -257,7 +257,7 @@ if (!isset($_SESSION['userID'])) {
     setInterval(fetchLiveChartData, 3000);
     setInterval(fetchStatusData, 3000);
     setInterval(fetchLiveTableData, 3000);
-    setInterval(fetchDeviceStatus, 1000);
+    setInterval(fetchDeviceStatus, 3000);
     </script>
 </body>
 </html>

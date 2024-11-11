@@ -264,7 +264,7 @@ if (!isset($_SESSION['userID'])) {
     setInterval(fetchLiveChartData, 3000);
     setInterval(fetchStatusData, 3000);
     setInterval(fetchLiveTableData, 3000);
-    setInterval(fetchDeviceStatus, 1000); // Check device status every 5 seconds
+    setInterval(fetchDeviceStatus, 3000); // Check device status every 5 seconds
     </script>
 </body>
 </html>
