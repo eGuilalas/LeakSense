@@ -2,7 +2,6 @@
 session_start();
 
 if (!isset($_SESSION['userID'])) {
-    // Redirect to login page
     $_SESSION['error'] = "You must log in to access this page.";
     header("Location: ../login.php");
     exit();
@@ -45,10 +44,12 @@ if (!isset($_SESSION['userID'])) {
         .chart, .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; }
         table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
         table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-        .status-detected { color: red; font-weight: bold; }  /* For Gas Detected */
-        .status-not-detected { color: green; font-weight: bold; }  /* For No Gas Detected */
-        .online { color: green; }  /* Online status color */
-        .offline { color: red; }    /* Offline status color */
+        .status-detected { color: red; font-weight: bold; }
+        .status-not-detected { color: green; font-weight: bold; }
+        .online { color: green; }
+        .offline { color: red; }
+        .on { color: green; font-weight: bold; }
+        .standby { color: orange; font-weight: bold; }
 
         /* Bottom section styling */
         .bottom-section {
@@ -102,29 +103,37 @@ if (!isset($_SESSION['userID'])) {
             <div class="dashboard-header">
                 <div class="header-box">
                     <h3>Server Status</h3>
-                    <p id="serverStatus" class="online">Online</p> <!-- Dynamic status with initial class -->
+                    <p id="serverStatus" class="online">Online</p>
                 </div>
                 <div class="header-box">
                     <h3>ESP32-GasSensor 1 Status</h3>
-                    <p id="sensor1Status" class="online">...</p> <!-- Dynamic status with initial class -->
+                    <p id="sensor1Status" class="online">...</p>
                 </div>
                 <div class="header-box">
                     <h3>ESP32-GasSensor 2 Status</h3>
-                    <p id="sensor2Status" class="online">...</p> <!-- Dynamic status with initial class -->
+                    <p id="sensor2Status" class="online">...</p>
+                </div>
+                <div class="header-box">
+                    <h3>ESP32-GasSensor-Fan-1 Status</h3>
+                    <p id="fan1Status" class="standby">...</p>
+                </div>
+                <div class="header-box">
+                    <h3>ESP32-GasSensor-Fan-2 Status</h3>
+                    <p id="fan2Status" class="standby">...</p>
                 </div>
             </div>
             <div class="dashboard-header">
                 <div class="header-box">
                     <h3>Pending</h3>
-                    <p id="pendingCount" style="color: #36A2EB;">0</p> <!-- Color for Pending -->
+                    <p id="pendingCount" style="color: #36A2EB;">0</p>
                 </div>
                 <div class="header-box">
                     <h3>Acknowledge</h3>
-                    <p id="acknowledgeCount" style="color: #FF6384;">0</p> <!-- Color for Acknowledge -->
+                    <p id="acknowledgeCount" style="color: #FF6384;">0</p>
                 </div>
                 <div class="header-box">
                     <h3>False Alarm</h3>
-                    <p id="falseAlarmCount" style="color: #FFCE56;">0</p> <!-- Color for False Alarm -->
+                    <p id="falseAlarmCount" style="color: #FFCE56;">0</p>
                 </div>
             </div>
 
@@ -175,7 +184,7 @@ if (!isset($_SESSION['userID'])) {
         data: {
             labels: ['Pending', 'Acknowledge', 'False Alarm'],
             datasets: [{
-                data: [0, 0, 0], // Initial data
+                data: [0, 0, 0],
                 backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
             }]
         },
@@ -186,7 +195,6 @@ if (!isset($_SESSION['userID'])) {
         fetch('../api/get_live_chart_data.php')
             .then(response => response.json())
             .then(data => {
-                console.log("Live Chart Data Response:", data);
                 if (data['ESP32-GasSensor1'] && data['ESP32-GasSensor1'].length > 0) {
                     liveGasChart.data.labels = data['ESP32-GasSensor1'].map(d => d.time);
                     liveGasChart.data.datasets[0].data = data['ESP32-GasSensor1'].map(d => d.ppm);
@@ -205,7 +213,6 @@ if (!isset($_SESSION['userID'])) {
         fetch('../api/get_status_data.php')
             .then(response => response.json())
             .then(data => {
-                console.log("Status Data Response:", data);
                 document.getElementById('pendingCount').innerText = data.pending;
                 document.getElementById('acknowledgeCount').innerText = data.acknowledge;
                 document.getElementById('falseAlarmCount').innerText = data.false_alarm;
@@ -215,16 +222,49 @@ if (!isset($_SESSION['userID'])) {
             .catch(error => console.error("Error fetching status data:", error));
     }
 
-    function fetchLiveTableData() {
+    function fetchDeviceStatus() {
+        fetch('../api/get_status.php')
+            .then(response => response.json())
+            .then(data => {
+                const sensor1Online = data.GS1 === 'Online';
+                const sensor2Online = data.GS2 === 'Online';
+
+                document.getElementById('sensor1Status').innerText = data.GS1;
+                document.getElementById('sensor2Status').innerText = data.GS2;
+
+                const fan1StatusElem = document.getElementById('fan1Status');
+                const fan2StatusElem = document.getElementById('fan2Status');
+
+                if (!sensor1Online) {
+                    fan1StatusElem.innerText = "Offline";
+                    fan1StatusElem.className = "offline";
+                }
+
+                if (!sensor2Online) {
+                    fan2StatusElem.innerText = "Offline";
+                    fan2StatusElem.className = "offline";
+                }
+
+                if (sensor1Online || sensor2Online) {
+                    fetchLiveTableData(sensor1Online, sensor2Online);
+                }
+
+                document.getElementById('serverStatus').className = data.server === 'Online' ? 'online' : 'offline';
+                document.getElementById('sensor1Status').className = sensor1Online ? 'online' : 'offline';
+                document.getElementById('sensor2Status').className = sensor2Online ? 'online' : 'offline';
+            })
+            .catch(error => console.error("Error fetching device status:", error));
+    }
+
+    function fetchLiveTableData(sensor1Online, sensor2Online) {
         fetch('../api/get_live_table_data.php')
             .then(response => response.json())
             .then(data => {
-                console.log("Live Table Data:", data);
                 const tableBody = document.querySelector("#gasTable tbody");
                 tableBody.innerHTML = "";
 
-                // Limit to 7 most recent entries
                 const latestEntries = data.slice(-7);
+                let isGasDetected = false;
 
                 latestEntries.forEach(row => {
                     const statusClass = row.status === "Gas Detected" ? 'status-detected' : 'status-not-detected';
@@ -235,36 +275,31 @@ if (!isset($_SESSION['userID'])) {
                             <td class="${statusClass}">${row.status}</td>
                             <td>${row.timestamp}</td>
                         </tr>`;
+                    if (row.status === "Gas Detected") {
+                        isGasDetected = true;
+                    }
                 });
 
-                // Scroll to the bottom of the table
-                tableBody.scrollTop = tableBody.scrollHeight;
+                const fan1StatusElem = document.getElementById('fan1Status');
+                const fan2StatusElem = document.getElementById('fan2Status');
+
+                if (sensor1Online) {
+                    fan1StatusElem.innerText = isGasDetected ? "On" : "Standby";
+                    fan1StatusElem.className = isGasDetected ? "on" : "standby";
+                }
+
+                if (sensor2Online) {
+                    fan2StatusElem.innerText = isGasDetected ? "On" : "Standby";
+                    fan2StatusElem.className = isGasDetected ? "on" : "standby";
+                }
             })
             .catch(error => console.error("Error fetching live table data:", error));
     }
 
-    function fetchDeviceStatus() {
-        fetch('../api/get_status.php') // Updated endpoint to fetch status
-            .then(response => response.json())
-            .then(data => {
-                console.log("Device Status Response:", data);
-                document.getElementById('serverStatus').innerText = data.server; // Update Server Status
-                document.getElementById('sensor1Status').innerText = data.GS1; // Update Sensor 1 Status
-                document.getElementById('sensor2Status').innerText = data.GS2; // Update Sensor 2 Status
-
-                // Change text color based on status
-                document.getElementById('serverStatus').className = data.server === 'Online' ? 'online' : 'offline';
-                document.getElementById('sensor1Status').className = data.GS1 === 'Online' ? 'online' : 'offline';
-                document.getElementById('sensor2Status').className = data.GS2 === 'Online' ? 'online' : 'offline';
-            })
-            .catch(error => console.error("Error fetching device status:", error));
-    }
-
-    // Set intervals for data fetching
     setInterval(fetchLiveChartData, 3000);
     setInterval(fetchStatusData, 3000);
-    setInterval(fetchLiveTableData, 3000);
-    setInterval(fetchDeviceStatus, 3000); // Check device status every 5 seconds
+    setInterval(fetchDeviceStatus, 3000);
+    setInterval(fetchLiveTableData, 1000);
     </script>
 </body>
 </html>

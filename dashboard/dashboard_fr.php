@@ -2,7 +2,6 @@
 session_start();
 
 if (!isset($_SESSION['userID'])) {
-    // Redirect to login page
     $_SESSION['error'] = "You must log in to access this page.";
     header("Location: ../login.php");
     exit();
@@ -10,11 +9,11 @@ if (!isset($_SESSION['userID'])) {
 ?>
 
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de Bord Leaksense</title>
+    <title>Leaksense Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
@@ -45,12 +44,14 @@ if (!isset($_SESSION['userID'])) {
         .chart, .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; }
         table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
         table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-        .status-detected { color: red; font-weight: bold; }  /* Pour Gaz Détecté */
-        .status-not-detected { color: green; font-weight: bold; }  /* Pour Aucun Gaz Détecté */
-        .online { color: green; }  /* Couleur pour l'état en ligne */
-        .offline { color: red; }    /* Couleur pour l'état hors ligne */
+        .status-detected { color: red; font-weight: bold; }
+        .status-not-detected { color: green; font-weight: bold; }
+        .online { color: green; }
+        .offline { color: red; }
+        .on { color: green; font-weight: bold; }
+        .standby { color: orange; font-weight: bold; }
 
-        /* Stylisation de la section inférieure */
+        /* Bottom section styling */
         .bottom-section {
             border-top: 1px solid #444;
             padding-top: 20px;
@@ -68,17 +69,17 @@ if (!isset($_SESSION['userID'])) {
     <div class="dashboard-container">
         <aside class="sidebar">
             <div>
-                <h2>Tableau de Bord Leaksense</h2>
+                <h2>Leaksense Dashboard</h2>
                 <nav>
                     <ul>
-                        <li><a href="#" class="active">Tableau de Bord</a></li>
-                        <li><a href="gs1_fr.php">ESP32-CapteurGaz 1</a></li>
-                        <li><a href="gs2_fr.php">ESP32-CapteurGaz 2</a></li>
-                        <li><a href="Reports.php">Rapports</a></li>
+                        <li><a href="#" class="active">Tableau de bord</a></li>
+                        <li><a href="gs1_fr.php">ESP32-GasSensor 1</a></li>
+                        <li><a href="gs2_fr.php">ESP32-GasSensor 2</a></li>
+                        <li><a href="Reports_fr.php">Rapports</a></li>
                         <?php if ($_SESSION['userrole'] !== 'user'): ?>
-                            <li><a href="manage_user_fr.php">Gérer Utilisateurs</a></li>
-                            <li><a href="Threshold_fr.php">Paramètres de Seuil</a></li>
-                            <li><a href="email_alert_report_fr.php">Email Alert Report</a></li>
+                            <li><a href="manage_user_fr.php">Gérer l'utilisateur</a></li>
+                            <li><a href="Threshold_fr.php">Configuration du seuil</a></li>
+                            <li><a href="email_alert_report_fr.php">Rapport d'alerte par e-mail</a></li>
                         <?php endif; ?>
                     </ul>
                 </nav>
@@ -87,44 +88,52 @@ if (!isset($_SESSION['userID'])) {
             <div class="bottom-section">
                 <h3>Welcome!</h3>
                 <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
-                <h4>Rôle : <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
+                <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
             <div class="bottom-section">
-                <h3>Langue</h3>
-                <li><a href="dashboard.php">English</a></li>
+                <h3>Language</h3>
+                <li><a href="dashboard.php">Anglais</a></li>
             </div>
             <div class="bottom-section">
-                <a href="../logout.php">Déconnexion</a>
+                <a href="../logout.php">Se déconnecter</a>
             </div>
         </aside>
 
         <main class="main-dashboard">
             <div class="dashboard-header">
                 <div class="header-box">
-                    <h3>Statut du Serveur</h3>
-                    <p id="serverStatus" class="online">En Ligne</p> <!-- Statut dynamique avec classe initiale -->
+                    <h3>État du serveur</h3>
+                    <p id="serverStatus" class="online">Online</p>
                 </div>
                 <div class="header-box">
-                    <h3>Statut ESP32-CapteurGaz 1</h3>
-                    <p id="sensor1Status" class="online">...</p> <!-- Statut dynamique avec classe initiale -->
+                    <h3>État de l'ESP32-GasSensor 1</h3>
+                    <p id="sensor1Status" class="online">...</p>
                 </div>
                 <div class="header-box">
-                    <h3>Statut ESP32-CapteurGaz 2</h3>
-                    <p id="sensor2Status" class="online">...</p> <!-- Statut dynamique avec classe initiale -->
+                    <h3>État de l'ESP32-GasSensor 2</h3>
+                    <p id="sensor2Status" class="online">...</p>
+                </div>
+                <div class="header-box">
+                    <h3>État de l'ESP32-GasSensor-Fan-1</h3>
+                    <p id="fan1Status" class="standby">...</p>
+                </div>
+                <div class="header-box">
+                    <h3>État de l'ESP32-GasSensor-Fan-2</h3>
+                    <p id="fan2Status" class="standby">...</p>
                 </div>
             </div>
             <div class="dashboard-header">
                 <div class="header-box">
-                    <h3>En Attente</h3>
-                    <p id="pendingCount" style="color: #36A2EB;">0</p> <!-- Couleur pour En Attente -->
+                    <h3>En attente</h3>
+                    <p id="pendingCount" style="color: #36A2EB;">0</p>
                 </div>
                 <div class="header-box">
-                    <h3>Acknowledgment</h3>
-                    <p id="acknowledgeCount" style="color: #FF6384;">0</p> <!-- Couleur pour Acknowledgment -->
+                    <h3>Acknowledge</h3>
+                    <p id="acknowledgeCount" style="color: #FF6384;">0</p>
                 </div>
                 <div class="header-box">
-                    <h3>Fausse Alarme</h3>
-                    <p id="falseAlarmCount" style="color: #FFCE56;">0</p> <!-- Couleur pour Fausse Alarme -->
+                    <h3>Faux alarme</h3>
+                    <p id="falseAlarmCount" style="color: #FFCE56;">0</p>
                 </div>
             </div>
 
@@ -136,13 +145,13 @@ if (!isset($_SESSION['userID'])) {
                     <canvas id="statusChart"></canvas>
                 </div>
                 <div class="table-container">
-                    <h3>Tableau de Gaz en Direct</h3>
+                    <h3>Tableau de gaz en direct</h3>
                     <table id="gasTable">
                         <thead>
                             <tr>
                                 <th>ID Appareil</th>
-                                <th>Niveau de Gaz (ppm)</th>
-                                <th>Statut</th>
+                                <th>Niveau de gaz (ppm)</th>
+                                <th>État</th>
                                 <th>Horodatage</th>
                             </tr>
                         </thead>
@@ -167,13 +176,13 @@ if (!isset($_SESSION['userID'])) {
                 { label: 'GS2', data: [], borderColor: '#36A2EB', fill: false }
             ]
         },
-        options: { responsive: true, scales: { x: { title: { display: true, text: 'Heure' } }, y: { title: { display: true, text: 'Niveau de Gaz (ppm)' } } } }
+        options: { responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Gas Level (ppm)' } } } }
     });
 
     let statusChart = new Chart(statusChartCtx, {
         type: 'doughnut',
         data: {
-            labels: ['En Attente', 'Acknowledge', 'Fausse Alarme'],
+            labels: ['Pending', 'Acknowledge', 'False Alarm'],
             datasets: [{
                 data: [0, 0, 0],
                 backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
@@ -197,7 +206,7 @@ if (!isset($_SESSION['userID'])) {
                 }
                 liveGasChart.update();
             })
-            .catch(error => console.error("Erreur lors de la récupération des données du graphique en direct:", error));
+            .catch(error => console.error("Error fetching live chart data:", error));
     }
 
     function fetchStatusData() {
@@ -210,21 +219,55 @@ if (!isset($_SESSION['userID'])) {
                 statusChart.data.datasets[0].data = [data.pending, data.acknowledge, data.false_alarm];
                 statusChart.update();
             })
-            .catch(error => console.error("Erreur lors de la récupération des données de statut:", error));
+            .catch(error => console.error("Error fetching status data:", error));
     }
 
-    function fetchLiveTableData() {
+    function fetchDeviceStatus() {
+        fetch('../api/get_status.php')
+            .then(response => response.json())
+            .then(data => {
+                const sensor1Online = data.GS1 === 'Online';
+                const sensor2Online = data.GS2 === 'Online';
+
+                document.getElementById('sensor1Status').innerText = data.GS1;
+                document.getElementById('sensor2Status').innerText = data.GS2;
+
+                const fan1StatusElem = document.getElementById('fan1Status');
+                const fan2StatusElem = document.getElementById('fan2Status');
+
+                if (!sensor1Online) {
+                    fan1StatusElem.innerText = "Offline";
+                    fan1StatusElem.className = "offline";
+                }
+
+                if (!sensor2Online) {
+                    fan2StatusElem.innerText = "Offline";
+                    fan2StatusElem.className = "offline";
+                }
+
+                if (sensor1Online || sensor2Online) {
+                    fetchLiveTableData(sensor1Online, sensor2Online);
+                }
+
+                document.getElementById('serverStatus').className = data.server === 'Online' ? 'online' : 'offline';
+                document.getElementById('sensor1Status').className = sensor1Online ? 'online' : 'offline';
+                document.getElementById('sensor2Status').className = sensor2Online ? 'online' : 'offline';
+            })
+            .catch(error => console.error("Error fetching device status:", error));
+    }
+
+    function fetchLiveTableData(sensor1Online, sensor2Online) {
         fetch('../api/get_live_table_data.php')
             .then(response => response.json())
             .then(data => {
                 const tableBody = document.querySelector("#gasTable tbody");
                 tableBody.innerHTML = "";
 
-                // Limiter aux 7 entrées les plus récentes
                 const latestEntries = data.slice(-7);
+                let isGasDetected = false;
 
                 latestEntries.forEach(row => {
-                    const statusClass = row.status === "Gaz Détecté" ? 'status-detected' : 'status-not-detected';
+                    const statusClass = row.status === "Gas Detected" ? 'status-detected' : 'status-not-detected';
                     tableBody.innerHTML += `
                         <tr>
                             <td>${row.deviceID}</td>
@@ -232,32 +275,31 @@ if (!isset($_SESSION['userID'])) {
                             <td class="${statusClass}">${row.status}</td>
                             <td>${row.timestamp}</td>
                         </tr>`;
+                    if (row.status === "Gas Detected") {
+                        isGasDetected = true;
+                    }
                 });
 
-                tableBody.scrollTop = tableBody.scrollHeight;
-            })
-            .catch(error => console.error("Erreur lors de la récupération des données de table en direct:", error));
-    }
+                const fan1StatusElem = document.getElementById('fan1Status');
+                const fan2StatusElem = document.getElementById('fan2Status');
 
-    function fetchDeviceStatus() {
-        fetch('../api/get_status.php')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('serverStatus').innerText = data.server === 'Online' ? 'En Ligne' : 'Hors Ligne';
-                document.getElementById('sensor1Status').innerText = data.GS1 === 'Online' ? 'En Ligne' : 'Hors Ligne';
-                document.getElementById('sensor2Status').innerText = data.GS2 === 'Online' ? 'En Ligne' : 'Hors Ligne';
+                if (sensor1Online) {
+                    fan1StatusElem.innerText = isGasDetected ? "On" : "Standby";
+                    fan1StatusElem.className = isGasDetected ? "on" : "standby";
+                }
 
-                document.getElementById('serverStatus').className = data.server === 'Online' ? 'online' : 'offline';
-                document.getElementById('sensor1Status').className = data.GS1 === 'Online' ? 'online' : 'offline';
-                document.getElementById('sensor2Status').className = data.GS2 === 'Online' ? 'online' : 'offline';
+                if (sensor2Online) {
+                    fan2StatusElem.innerText = isGasDetected ? "On" : "Standby";
+                    fan2StatusElem.className = isGasDetected ? "on" : "standby";
+                }
             })
-            .catch(error => console.error("Erreur lors de la récupération de l'état de l'appareil:", error));
+            .catch(error => console.error("Error fetching live table data:", error));
     }
 
     setInterval(fetchLiveChartData, 3000);
     setInterval(fetchStatusData, 3000);
-    setInterval(fetchLiveTableData, 3000);
     setInterval(fetchDeviceStatus, 3000);
+    setInterval(fetchLiveTableData, 1000);
     </script>
 </body>
 </html>
