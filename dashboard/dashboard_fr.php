@@ -9,67 +9,72 @@ if (!isset($_SESSION['userID'])) {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaksense Dashboard</title>
+    <title>Tableau de bord Leaksense</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
+        body { font-family: Arial, sans-serif; display: flex; transition: background-color 0.3s, color 0.3s; }
+
+        /* Dark Mode */
+        body.dark { background-color: #1E1E2D; color: #fff; }
+        body.dark .sidebar { background-color: #2B2D42; color: #D6D8E7; }
+        body.dark .sidebar h2, body.dark .sidebar a { color: #D6D8E7; }
+        body.dark .sidebar a.active, body.dark .sidebar a:hover { background-color: #F72585; color: #fff; }
+        body.dark .header-box, body.dark .chart, body.dark .table-container { background: #3A3A5A; }
+        body.dark .status-detected { color: red; }
+        body.dark .status-not-detected { color: green; }
+        body.dark .bottom-section { color: #D6D8E7; }
+
+        /* Light Mode */
+        body.light { background-color: #f0f0f0; color: #333; }
+        body.light .sidebar { background-color: #e6e6e6; color: #333; }
+        body.light .sidebar h2, body.light .sidebar a { color: #333; }
+        body.light .sidebar a.active, body.light .sidebar a:hover { background-color: #4CAF50; color: #fff; }
+        body.light .header-box, body.light .chart, body.light .table-container { background: #f9f9f9; }
+        body.light .status-detected { color: red; }
+        body.light .status-not-detected { color: green; }
+        body.light .bottom-section { color: #333; }
+        
+        /* General Styles */
         .dashboard-container { display: flex; height: 100vh; width: 100%; }
-        .sidebar { background-color: #2B2D42; width: 220px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-        .sidebar h2 { color: #8D99AE; font-size: 1.5em; margin-bottom: 20px; }
+        .sidebar { width: 220px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        .sidebar h2 { font-size: 1.5em; margin-bottom: 20px; }
         .sidebar ul { list-style: none; padding-left: 0; }
         .sidebar li { margin-bottom: 15px; }
-        .sidebar a {
-            text-decoration: none;
-            color: #D6D8E7;
-            font-size: 1em;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background-color: #F72585;
-            color: #fff;
-        }
+        .sidebar a { text-decoration: none; font-size: 1em; display: block; padding: 10px; border-radius: 5px; transition: background-color 0.2s; }
         
+        .toggle-container { display: flex; align-items: center; gap: 10px; }
+        .toggle-container label { font-size: 0.9em; }
+
         .main-dashboard { flex: 1; padding: 20px; overflow-y: auto; }
         .dashboard-header { display: flex; gap: 20px; margin-bottom: 20px; }
-        .header-box { background: #3A3A5A; padding: 20px; border-radius: 10px; flex: 1; }
-        .header-box h3 { color: #8D99AE; }
+        .header-box { padding: 20px; border-radius: 10px; flex: 1; }
+        .header-box h3 { color: inherit; }
         .charts-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .chart, .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; }
-        table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
+        .chart, .table-container { padding: 20px; border-radius: 10px; }
+        table { width: 100%; color: inherit; margin-top: 10px; border-collapse: collapse; }
         table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-        .status-detected { color: red; font-weight: bold; }
-        .status-not-detected { color: green; font-weight: bold; }
+
+        /* Bottom section styling */
+        .bottom-section { border-top: 1px solid #444; padding-top: 20px; color: inherit; text-align: left; }
+        .bottom-section h1, .bottom-section h3 { margin-bottom: 10px; }
+        .bottom-section a { text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+
         .online { color: green; }
         .offline { color: red; }
         .on { color: green; font-weight: bold; }
         .standby { color: orange; font-weight: bold; }
-
-        /* Bottom section styling */
-        .bottom-section {
-            border-top: 1px solid #444;
-            padding-top: 20px;
-            color: #D6D8E7;
-            text-align: left;
-        }
-        .bottom-section h1, .bottom-section h3 { margin-bottom: 10px; color: #D6D8E7; }
-        .bottom-section h5 { display: inline; color: #8D99AE; font-weight: normal; margin-right: 15px; }
-        .bottom-section a { color: #F72585; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
-        .bottom-section a:hover { text-decoration: underline; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="dark">
     <div class="dashboard-container">
         <aside class="sidebar">
             <div>
-                <h2>Leaksense Dashboard</h2>
+                <h2>Tableau de bord Leaksense</h2>
                 <nav>
                     <ul>
                         <li><a href="#" class="active">Tableau de bord</a></li>
@@ -84,14 +89,19 @@ if (!isset($_SESSION['userID'])) {
                     </ul>
                 </nav>
             </div>
+            <!-- Toggle Switch -->
+            <div class="toggle-container">
+                <label for="theme-toggle">Mode Clair</label>
+                <input type="checkbox" id="theme-toggle">
+            </div>
             
             <div class="bottom-section">
-                <h3>Welcome!</h3>
+                <h3>Bienvenue!</h3>
                 <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
-                <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
+                <h4>Rôle: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
             <div class="bottom-section">
-                <h3>Language</h3>
+                <h3>Langue</h3>
                 <li><a href="dashboard.php">Anglais</a></li>
             </div>
             <div class="bottom-section">
@@ -128,7 +138,7 @@ if (!isset($_SESSION['userID'])) {
                     <p id="pendingCount" style="color: #36A2EB;">0</p>
                 </div>
                 <div class="header-box">
-                    <h3>Acknowledge</h3>
+                    <h3>Accusé</h3>
                     <p id="acknowledgeCount" style="color: #FF6384;">0</p>
                 </div>
                 <div class="header-box">
@@ -164,6 +174,11 @@ if (!isset($_SESSION['userID'])) {
     </div>
 
     <script>
+    document.getElementById('theme-toggle').addEventListener('change', function() {
+        document.body.classList.toggle('light', this.checked);
+        document.body.classList.toggle('dark', !this.checked);
+    });
+
     const liveGasChartCtx = document.getElementById('livegasChart').getContext('2d');
     const statusChartCtx = document.getElementById('statusChart').getContext('2d');
 
@@ -176,13 +191,13 @@ if (!isset($_SESSION['userID'])) {
                 { label: 'GS2', data: [], borderColor: '#36A2EB', fill: false }
             ]
         },
-        options: { responsive: true, scales: { x: { title: { display: true, text: 'Time' } }, y: { title: { display: true, text: 'Gas Level (ppm)' } } } }
+        options: { responsive: true, scales: { x: { title: { display: true, text: 'Heure' } }, y: { title: { display: true, text: 'Niveau de gaz (ppm)' } } } }
     });
 
     let statusChart = new Chart(statusChartCtx, {
         type: 'doughnut',
         data: {
-            labels: ['Pending', 'Acknowledge', 'False Alarm'],
+            labels: ['En attente', 'Accusé', 'Faux alarme'],
             datasets: [{
                 data: [0, 0, 0],
                 backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56']
@@ -206,7 +221,7 @@ if (!isset($_SESSION['userID'])) {
                 }
                 liveGasChart.update();
             })
-            .catch(error => console.error("Error fetching live chart data:", error));
+            .catch(error => console.error("Erreur lors de la récupération des données du graphique en direct :", error));
     }
 
     function fetchStatusData() {
@@ -219,7 +234,7 @@ if (!isset($_SESSION['userID'])) {
                 statusChart.data.datasets[0].data = [data.pending, data.acknowledge, data.false_alarm];
                 statusChart.update();
             })
-            .catch(error => console.error("Error fetching status data:", error));
+            .catch(error => console.error("Erreur lors de la récupération des données d'état :", error));
     }
 
     function fetchDeviceStatus() {
@@ -236,12 +251,12 @@ if (!isset($_SESSION['userID'])) {
                 const fan2StatusElem = document.getElementById('fan2Status');
 
                 if (!sensor1Online) {
-                    fan1StatusElem.innerText = "Offline";
+                    fan1StatusElem.innerText = "Hors ligne";
                     fan1StatusElem.className = "offline";
                 }
 
                 if (!sensor2Online) {
-                    fan2StatusElem.innerText = "Offline";
+                    fan2StatusElem.innerText = "Hors ligne";
                     fan2StatusElem.className = "offline";
                 }
 
@@ -253,7 +268,7 @@ if (!isset($_SESSION['userID'])) {
                 document.getElementById('sensor1Status').className = sensor1Online ? 'online' : 'offline';
                 document.getElementById('sensor2Status').className = sensor2Online ? 'online' : 'offline';
             })
-            .catch(error => console.error("Error fetching device status:", error));
+            .catch(error => console.error("Erreur lors de la récupération de l'état de l'appareil :", error));
     }
 
     function fetchLiveTableData(sensor1Online, sensor2Online) {
@@ -284,16 +299,16 @@ if (!isset($_SESSION['userID'])) {
                 const fan2StatusElem = document.getElementById('fan2Status');
 
                 if (sensor1Online) {
-                    fan1StatusElem.innerText = isGasDetected ? "On" : "Standby";
+                    fan1StatusElem.innerText = isGasDetected ? "Activé" : "En veille";
                     fan1StatusElem.className = isGasDetected ? "on" : "standby";
                 }
 
                 if (sensor2Online) {
-                    fan2StatusElem.innerText = isGasDetected ? "On" : "Standby";
+                    fan2StatusElem.innerText = isGasDetected ? "Activé" : "En veille";
                     fan2StatusElem.className = isGasDetected ? "on" : "standby";
                 }
             })
-            .catch(error => console.error("Error fetching live table data:", error));
+            .catch(error => console.error("Erreur lors de la récupération des données du tableau en direct :", error));
     }
 
     setInterval(fetchLiveChartData, 3000);

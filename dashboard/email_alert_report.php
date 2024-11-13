@@ -39,36 +39,47 @@ $email_alert_reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Email Alert Report - Leaksense Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
+        body { font-family: Arial, sans-serif; display: flex; transition: background-color 0.3s, color 0.3s; }
+
+        /* Dark Mode */
+        body.dark { background-color: #1E1E2D; color: #fff; }
+        body.dark .sidebar { background-color: #2B2D42; color: #D6D8E7; }
+        body.dark .sidebar h2, body.dark .sidebar a { color: #D6D8E7; }
+        body.dark .sidebar a.active, body.dark .sidebar a:hover { background-color: #F72585; color: #fff; }
+        body.dark .table-container { background: #3A3A5A; }
+        body.dark .bottom-section { color: #D6D8E7; }
+
+        /* Light Mode */
+        body.light { background-color: #f0f0f0; color: #333; }
+        body.light .sidebar { background-color: #e6e6e6; color: #333; }
+        body.light .sidebar h2, body.light .sidebar a { color: #333; }
+        body.light .sidebar a.active, body.light .sidebar a:hover { background-color: #4CAF50; color: #fff; }
+        body.light .table-container { background: #f9f9f9; }
+        body.light .bottom-section { color: #333; }
+
+        /* General Styles */
         .dashboard-container { display: flex; height: 100vh; width: 100%; }
-        .sidebar { background-color: #2B2D42; width: 220px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-        .sidebar h2 { color: #8D99AE; font-size: 1.5em; margin-bottom: 20px; }
+        .sidebar { width: 220px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        .sidebar h2 { font-size: 1.5em; margin-bottom: 20px; }
         .sidebar ul { list-style: none; padding-left: 0; }
         .sidebar li { margin-bottom: 15px; }
-        .sidebar a {
-            text-decoration: none;
-            color: #D6D8E7;
-            font-size: 1em;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background-color: #F72585;
-            color: #fff;
-        }
-        .bottom-section { border-top: 1px solid #444; padding-top: 20px; color: #D6D8E7; text-align: left; }
-        .bottom-section h3, .bottom-section h5 { color: #8D99AE; margin-bottom: 10px; }
-        .bottom-section a { color: #F72585; text-decoration: none; font-weight: bold; }
+        .sidebar a { text-decoration: none; font-size: 1em; display: block; padding: 10px; border-radius: 5px; transition: background-color 0.2s; }
+
+        .toggle-container { display: flex; align-items: center; gap: 10px; }
+        .toggle-container label { font-size: 0.9em; }
 
         .main-dashboard { flex: 1; padding: 20px; overflow-y: auto; }
-        .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; }
-        table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
+        .table-container { padding: 20px; border-radius: 10px; }
+        table { width: 100%; color: inherit; margin-top: 10px; border-collapse: collapse; }
         table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+
+        /* Bottom section styling */
+        .bottom-section { border-top: 1px solid #444; padding-top: 20px; color: inherit; text-align: left; }
+        .bottom-section h3, .bottom-section h5 { margin-bottom: 10px; }
+        .bottom-section a { text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
     </style>
 </head>
-<body>
+<body class="dark">
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -85,6 +96,11 @@ $email_alert_reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <li><a href="email_alert_report.php" class="active">Email Alert Report</a></li>
                     </ul>
                 </nav>
+            </div>
+            <!-- Toggle Switch -->
+            <div class="toggle-container">
+                <label for="theme-toggle">Light Mode</label>
+                <input type="checkbox" id="theme-toggle">
             </div>
 
             <div class="bottom-section">
@@ -134,5 +150,12 @@ $email_alert_reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </main>
     </div>
+
+    <script>
+    document.getElementById('theme-toggle').addEventListener('change', function() {
+        document.body.classList.toggle('light', this.checked);
+        document.body.classList.toggle('dark', !this.checked);
+    });
+    </script>
 </body>
 </html>

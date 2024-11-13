@@ -1,28 +1,20 @@
 <?php
-session_start(); // Start the session
-include '../db_connection.php'; // Include your database connection
+session_start();
+include '../db_connection.php';
 
-// Check if user is logged in
 if (!isset($_SESSION['userID'])) {
-    // Redirect to login page
     $_SESSION['error'] = "You must log in to access this page.";
     header("Location: ../login.php");
     exit();
 }
 
-// Handle form submission for acknowledging or false alarm
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     $readingID = $_POST['readingID'];
     $comment = $_POST['comment'];
+    $status = ($action == 'acknowledge') ? 2 : 3;
+    $userID = $_SESSION['userID'];
 
-    // Determine the status based on the action
-    $status = ($action == 'acknowledge') ? 2 : 3; // 2 for Acknowledged, 3 for False Alarm
-
-    // Fetch the logged-in user's ID from the session
-    $userID = $_SESSION['userID']; // Assuming userID is stored in the session on login
-
-    // Update the database with the new status, comment, and user action
     $updateQuery = "
         UPDATE sensor_reading 
         SET status = :status, comment = :comment, actionby = :actionby, actionbytimestamp = NOW() 
@@ -42,7 +34,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Fetch gas readings from the database with specified alert status for GS1
 $query = "
     SELECT 
         sr.readingID, 
@@ -55,7 +46,7 @@ $query = "
         sr.status, 
         u.username AS actioned_by,
         sr.comment, 
-        sr.actionbytimestamp -- Select the actual actionbytimestamp
+        sr.actionbytimestamp
     FROM 
         sensor_reading sr
     JOIN 
@@ -81,93 +72,58 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>ESP32-GasSensor 1 Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
+        body { font-family: Arial, sans-serif; display: flex; transition: background-color 0.3s, color 0.3s; }
+
+        /* Dark Mode */
+        body.dark { background-color: #1E1E2D; color: #fff; }
+        body.dark .sidebar { background-color: #2B2D42; color: #D6D8E7; }
+        body.dark .sidebar h2, body.dark .sidebar a { color: #D6D8E7; }
+        body.dark .sidebar a.active, body.dark .sidebar a:hover { background-color: #F72585; color: #fff; }
+        body.dark .table-container { background: #3A3A5A; }
+        body.dark .bottom-section { color: #D6D8E7; }
+        body.dark .header-box { background: #3A3A5A; color: #8D99AE; }
+
+        /* Light Mode */
+        body.light { background-color: #f0f0f0; color: #333; }
+        body.light .sidebar { background-color: #e6e6e6; color: #333; }
+        body.light .sidebar h2, body.light .sidebar a { color: #333; }
+        body.light .sidebar a.active, body.light .sidebar a:hover { background-color: #4CAF50; color: #fff; }
+        body.light .table-container { background: #f9f9f9; }
+        body.light .bottom-section { color: #333; }
+        body.light .header-box { background: #e0e0e0; color: #333; }
+
         .dashboard-container { display: flex; height: 100vh; width: 100%; }
-        .sidebar { background-color: #2B2D42; width: 220px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-        .sidebar h2 { color: #8D99AE; font-size: 1.5em; margin-bottom: 20px; }
+        .sidebar { width: 240px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        .sidebar h2 { font-size: 1.8em; margin-bottom: 20px; }
         .sidebar ul { list-style: none; padding-left: 0; }
         .sidebar li { margin-bottom: 15px; }
-        .sidebar a {
-            text-decoration: none;
-            color: #D6D8E7;
-            font-size: 1em;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background-color: #F72585;
-            color: #fff;
-        }
-        .bottom-section { border-top: 1px solid #444; padding-top: 20px; color: #D6D8E7; text-align: left; }
-        .bottom-section h3, .bottom-section h5 { color: #8D99AE; margin-bottom: 10px; }
-        .bottom-section a { color: #F72585; text-decoration: none; font-weight: bold; }
+        .sidebar a { text-decoration: none; font-size: 1em; display: block; padding: 10px; border-radius: 5px; transition: background-color 0.2s; }
 
-        .main-dashboard { flex: 1; padding: 20px; overflow-y: auto; }
-        .dashboard-header { display: flex; gap: 20px; margin-bottom: 20px; }
-        .header-box { background: #3A3A5A; padding: 20px; border-radius: 10px; flex: 1; }
-        .header-box h3 { color: #8D99AE; }
-        
+        .toggle-container { display: flex; align-items: center; gap: 10px; }
+        .toggle-container label { font-size: 0.9em; }
+
+        .main-dashboard { flex: 1; padding: 25px; overflow-y: auto; }
+        .dashboard-header { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 20px; }
+        .header-box { flex: 1; padding: 15px; border-radius: 8px; text-align: center; transition: background-color 0.3s; }
+
+        .table-container { padding: 20px; border-radius: 10px; transition: background-color 0.3s; }
+        table { width: 100%; color: inherit; margin-top: 10px; border-collapse: collapse; }
+        table th, table td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+
         .filter-section { margin: 20px 0; color: #8D99AE; }
-        .filter-section select { padding: 5px; background-color: #3A3A5A; color: #D6D8E7; border: none; border-radius: 5px; }
+        .filter-section select { padding: 5px; background-color: inherit; color: inherit; border: 1px solid #ddd; border-radius: 5px; }
 
-        .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; }
-        table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
-        table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-        .status-pending { color: #36A2EB; font-weight: bold; }
-        .status-acknowledged { color: #FF6384; font-weight: bold; }
-        .status-false-alarm { color: #FFCE56; font-weight: bold; }
-        .action-button {
-            background-color: #FF6384; /* Acknowledge button color */
-            color: white; /* Text color */
-            border: none; /* No border */
-            padding: 10px 15px; /* Padding for size */
-            border-radius: 5px; /* Rounded corners */
-            cursor: pointer; /* Pointer cursor on hover */
-            transition: background-color 0.3s; /* Smooth background transition */
-            font-size: 14px; /* Font size */
-        }
-        .action-button.false-alarm {
-            background-color: #FFCE56; /* False Alarm button color */
-        }
-        .action-button:hover {
-            opacity: 0.8; /* Slightly dim the button on hover */
-        }
-        .popup {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            background-color: rgba(0, 0, 0, 0.5); /* Black background with opacity */
-            z-index: 999; /* Sit on top */
-        }
-        .popup-content {
-            background-color: #fefefe;
-            margin: 15% auto; /* 15% from the top and centered */
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%; /* Could be more or less, depending on screen size */
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
+        .action-button { background-color: #FF6384; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; font-size: 14px; }
+        .action-button.false-alarm { background-color: #FFCE56; }
+        .action-button:hover { opacity: 0.8; }
+        .popup { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999; }
+        .popup-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 60%; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
     </style>
 </head>
-<body>
+<body class="dark">
     <div class="dashboard-container">
-        <!-- Sidebar -->
         <aside class="sidebar">
             <div>
                 <h2>ESP32-GasSensor 1 Dashboard</h2>
@@ -185,6 +141,10 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </ul>
                 </nav>
             </div>
+            <div class="toggle-container">
+                <label for="theme-toggle">Light Mode</label>
+                <input type="checkbox" id="theme-toggle">
+            </div>
 
             <div class="bottom-section">
                 <h3>Welcome!</h3>
@@ -200,7 +160,6 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </aside>
         
-        <!-- Main Dashboard -->
         <main class="main-dashboard">
             <div class="dashboard-header">
                 <div class="header-box">
@@ -217,7 +176,6 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
 
-            <!-- Filter Section with Dropdown -->
             <div class="filter-section">
                 <label for="statusFilter">Filter by Status:</label>
                 <select id="statusFilter" onchange="filterStatus(this.value)">
@@ -228,7 +186,6 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </select>
             </div>
 
-            <!-- Gas Readings Table -->
             <div class="table-container">
                 <h3>Gas Readings</h3>
                 <table>
@@ -274,8 +231,8 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     ?>
                                 </td>
                                 <td><?php echo $reading["actioned_by"]; ?></td>
-                                <td><?php echo $reading["actionbytimestamp"]; ?></td> <!-- Show actionbytimestamp -->
-                                <td><?php echo $reading["comment"] ? $reading["comment"] : 'No comment'; ?></td> <!-- Display comment -->
+                                <td><?php echo $reading["actionbytimestamp"]; ?></td>
+                                <td><?php echo $reading["comment"] ? $reading["comment"] : 'No comment'; ?></td>
                                 <td>
                                     <button class="action-button acknowledge-button" onclick="openPopup('<?php echo $reading['readingID']; ?>', 'acknowledge')">Acknowledge</button> 
                                     <button class="action-button false-alarm-button" onclick="openPopup('<?php echo $reading['readingID']; ?>', 'false_alarm')">False Alarm</button>
@@ -302,6 +259,11 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <script>
+        document.getElementById('theme-toggle').addEventListener('change', function() {
+            document.body.classList.toggle('light', this.checked);
+            document.body.classList.toggle('dark', !this.checked);
+        });
+
         function filterStatus(status) {
             const rows = document.querySelectorAll("#gasReadingsTable tr");
             rows.forEach(row => {

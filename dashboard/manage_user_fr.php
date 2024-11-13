@@ -133,24 +133,40 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Gérer les Utilisateurs - Tableau de Bord Leaksense</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
+        body { font-family: Arial, sans-serif; transition: background-color 0.3s, color 0.3s; }
+        
+        /* Dark Mode */
+        body.dark { background-color: #1E1E2D; color: #fff; }
+        body.dark .sidebar { background-color: #2B2D42; color: #D6D8E7; }
+        body.dark .sidebar h2, body.dark .sidebar a { color: #D6D8E7; }
+        body.dark .sidebar a.active, body.dark .sidebar a:hover { background-color: #F72585; color: #fff; }
+        body.dark .table-container, body.dark .form-container { background: #3A3A5A; }
+
+        /* Light Mode */
+        body.light { background-color: #f0f0f0; color: #333; }
+        body.light .sidebar { background-color: #e6e6e6; color: #333; }
+        body.light .sidebar h2, body.light .sidebar a { color: #333; }
+        body.light .sidebar a.active, body.light .sidebar a:hover { background-color: #4CAF50; color: #fff; }
+        body.light .table-container, body.light .form-container { background: #f9f9f9; }
+
         .dashboard-container { display: flex; height: 100vh; width: 100%; }
-        .sidebar { background-color: #2B2D42; width: 220px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-        .sidebar h2 { color: #8D99AE; font-size: 1.5em; margin-bottom: 20px; }
+        .sidebar { width: 240px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        .sidebar h2 { font-size: 1.8em; margin-bottom: 20px; }
         .sidebar ul { list-style: none; padding-left: 0; }
         .sidebar li { margin-bottom: 15px; }
-        .sidebar a { text-decoration: none; color: #D6D8E7; font-size: 1em; display: block; padding: 10px; border-radius: 5px; transition: background-color 0.2s; }
-        .sidebar a:hover, .sidebar a.active { background-color: #F72585; color: #fff; }
+        .sidebar a { text-decoration: none; font-size: 1em; display: block; padding: 10px; border-radius: 5px; transition: background-color 0.2s; }
         
+        .toggle-container { display: flex; align-items: center; gap: 10px; }
+
         .main-dashboard { flex: 1; padding: 20px; overflow-y: auto; }
-        .form-container, .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        h3 { color: #8D99AE; margin-bottom: 15px; }
-        label { color: #D6D8E7; display: block; margin-top: 10px; }
+        .form-container, .table-container { padding: 20px; border-radius: 10px; margin-bottom: 20px; transition: background-color 0.3s; }
+        h3 { color: inherit; margin-bottom: 15px; }
+        label { color: inherit; display: block; margin-top: 10px; }
         input, select {
             width: 100%;
             padding: 8px;
-            background-color: #2B2D42;
-            color: #D6D8E7;
+            background-color: inherit;
+            color: inherit;
             border: 1px solid #444;
             border-radius: 5px;
             margin-top: 5px;
@@ -166,54 +182,38 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-right: 10px;
         }
         button:hover { background-color: #FF4571; }
-        table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
+        table { width: 100%; color: inherit; margin-top: 10px; border-collapse: collapse; }
         table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
         .action-buttons a { color: #F72585; text-decoration: none; margin-right: 10px; font-weight: bold; }
-        
-        /* Stylisation de la section inférieure */
-        .bottom-section {
-            border-top: 1px solid #444;
-            padding-top: 20px;
-            color: #D6D8E7;
-            text-align: left;
-        }
-        .bottom-section h3, .bottom-section h5 { margin-bottom: 10px; color: #D6D8E7; }
-        .bottom-section a { color: #F72585; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
-        .bottom-section a:hover { text-decoration: underline; }
+
+        .bottom-section { border-top: 1px solid #444; padding-top: 20px; color: inherit; text-align: left; }
+        .bottom-section h3, .bottom-section h5 { margin-bottom: 10px; }
+        .bottom-section a { color: #F72585; text-decoration: none; font-weight: bold; }
     </style>
-    <script>
-        function filterUsers() {
-            const filter = document.getElementById("searchInput").value.toLowerCase();
-            const rows = document.querySelectorAll("#userTable tbody tr");
-            rows.forEach(row => {
-                const username = row.querySelector("td:nth-child(1)").innerText.toLowerCase();
-                const name = row.querySelector("td:nth-child(4)").innerText.toLowerCase();
-                row.style.display = (username.includes(filter) || name.includes(filter)) ? "" : "none";
-            });
-        }
-    </script>
 </head>
-<body>
+<body class="dark">
     <div class="dashboard-container">
         <!-- Barre latérale -->
         <aside class="sidebar">
-            <div>
-                <h2>Tableau de Bord Leaksense</h2>
-                <nav>
-                    <ul>
-                        <li><a href="dashboard_fr.php">Tableau de Bord</a></li>
-                        <li><a href="gs1_fr.php">ESP32-CapteurGaz1</a></li>
-                        <li><a href="gs2_fr.php">ESP32-CapteurGaz2</a></li>
-                        <li><a href="Reports_fr.php">Rapports</a></li>
-                        <li><a href="#" class="active">Gérer les Utilisateurs</a></li>
-                        <li><a href="Threshold_fr.php">Configurer les Seuils</a></li>
-                        <li><a href="email_alert_report_fr.php">Email Alert Report</a></li>
-                    </ul>
-                </nav>
-            </div>
+            <h2>Tableau de Bord Leaksense</h2>
+            <nav>
+                <ul>
+                    <li><a href="dashboard_fr.php">Tableau de Bord</a></li>
+                    <li><a href="gs1_fr.php">ESP32-CapteurGaz1</a></li>
+                    <li><a href="gs2_fr.php">ESP32-CapteurGaz2</a></li>
+                    <li><a href="Reports_fr.php">Rapports</a></li>
+                    <li><a href="#" class="active">Gérer les Utilisateurs</a></li>
+                    <li><a href="Threshold_fr.php">Configurer les Seuils</a></li>
+                    <li><a href="email_alert_report_fr.php">Email Alert Report</a></li>
+                    <div class="toggle-container">
+                        <label for="theme-toggle">Mode Clair</label>
+                        <input type="checkbox" id="theme-toggle">
+                    </div>
+                </ul>
+            </nav>
             <div class="bottom-section">
-            <h3>Bienvenue !</h3>
-                <h3><?php echo htmlspecialchars($_SESSION['username']); ?></h3>
+                <h3>Bienvenue !</h3>
+                <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
                 <h4>Rôle : <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
             <div class="bottom-section">
@@ -236,6 +236,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
                 </div>
             <?php endif; ?>
+
             <!-- Formulaire d'ajout/modification d'utilisateur -->
             <div class="form-container">
                 <h3><?php echo $action; ?></h3>
@@ -321,5 +322,22 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </main>
     </div>
+
+    <script>
+        document.getElementById('theme-toggle').addEventListener('change', function() {
+            document.body.classList.toggle('light', this.checked);
+            document.body.classList.toggle('dark', !this.checked);
+        });
+
+        function filterUsers() {
+            const filter = document.getElementById("searchInput").value.toLowerCase();
+            const rows = document.querySelectorAll("#userTable tbody tr");
+            rows.forEach(row => {
+                const username = row.querySelector("td:nth-child(1)").innerText.toLowerCase();
+                const name = row.querySelector("td:nth-child(4)").innerText.toLowerCase();
+                row.style.display = (username.includes(filter) || name.includes(filter)) ? "" : "none";
+            });
+        }
+    </script>
 </body>
 </html>

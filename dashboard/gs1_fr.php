@@ -4,7 +4,6 @@ include '../db_connection.php'; // Inclure la connexion à la base de données
 
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['userID'])) {
-    // Rediriger vers la page de connexion
     $_SESSION['error'] = "Vous devez vous connecter pour accéder à cette page.";
     header("Location: ../login.php");
     exit();
@@ -15,14 +14,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     $action = $_POST['action'];
     $readingID = $_POST['readingID'];
     $comment = $_POST['comment'];
+    $status = ($action == 'acknowledge') ? 2 : 3;
+    $userID = $_SESSION['userID'];
 
-    // Déterminer le statut en fonction de l'action
-    $status = ($action == 'acknowledge') ? 2 : 3; // 2 pour Accusé de Réception, 3 pour Fausse Alarme
-
-    // Récupérer l'ID de l'utilisateur connecté à partir de la session
-    $userID = $_SESSION['userID']; // Supposant que l'ID de l'utilisateur est stocké dans la session à la connexion
-
-    // Mettre à jour la base de données avec le nouveau statut, commentaire et action de l'utilisateur
     $updateQuery = "
         UPDATE sensor_reading 
         SET status = :status, comment = :comment, actionby = :actionby, actionbytimestamp = NOW() 
@@ -42,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     }
 }
 
-// Récupérer les relevés de gaz de la base de données avec un statut d'alerte spécifié pour GS1
 $query = "
     SELECT 
         sr.readingID, 
@@ -55,7 +48,7 @@ $query = "
         sr.status, 
         u.username AS actioned_by,
         sr.comment, 
-        sr.actionbytimestamp -- Sélectionner le champ actionbytimestamp réel
+        sr.actionbytimestamp
     FROM 
         sensor_reading sr
     JOIN 
@@ -81,91 +74,57 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Tableau de Bord ESP32-CapteurGaz 1</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
+        body { font-family: Arial, sans-serif; display: flex; transition: background-color 0.3s, color 0.3s; }
+        
+        /* Dark Mode */
+        body.dark { background-color: #1E1E2D; color: #fff; }
+        body.dark .sidebar { background-color: #2B2D42; color: #D6D8E7; }
+        body.dark .sidebar h2, body.dark .sidebar a { color: #D6D8E7; }
+        body.dark .sidebar a.active, body.dark .sidebar a:hover { background-color: #F72585; color: #fff; }
+        body.dark .table-container { background: #3A3A5A; }
+        body.dark .bottom-section { color: #D6D8E7; }
+        body.dark .header-box { background: #3A3A5A; color: #8D99AE; }
+
+        /* Light Mode */
+        body.light { background-color: #f0f0f0; color: #333; }
+        body.light .sidebar { background-color: #e6e6e6; color: #333; }
+        body.light .sidebar h2, body.light .sidebar a { color: #333; }
+        body.light .sidebar a.active, body.light .sidebar a:hover { background-color: #4CAF50; color: #fff; }
+        body.light .table-container { background: #f9f9f9; }
+        body.light .bottom-section { color: #333; }
+        body.light .header-box { background: #e0e0e0; color: #333; }
+
         .dashboard-container { display: flex; height: 100vh; width: 100%; }
-        .sidebar { background-color: #2B2D42; width: 220px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-        .sidebar h2 { color: #8D99AE; font-size: 1.5em; margin-bottom: 20px; }
+        .sidebar { width: 240px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        .sidebar h2 { font-size: 1.8em; margin-bottom: 20px; }
         .sidebar ul { list-style: none; padding-left: 0; }
         .sidebar li { margin-bottom: 15px; }
-        .sidebar a {
-            text-decoration: none;
-            color: #D6D8E7;
-            font-size: 1em;
-            display: block;
-            padding: 10px;
-            border-radius: 5px;
-            transition: background-color 0.2s;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background-color: #F72585;
-            color: #fff;
-        }
-        .bottom-section { border-top: 1px solid #444; padding-top: 20px; color: #D6D8E7; text-align: left; }
-        .bottom-section h3, .bottom-section h5 { color: #8D99AE; margin-bottom: 10px; }
-        .bottom-section a { color: #F72585; text-decoration: none; font-weight: bold; }
+        .sidebar a { text-decoration: none; font-size: 1em; display: block; padding: 10px; border-radius: 5px; transition: background-color 0.2s; }
 
-        .main-dashboard { flex: 1; padding: 20px; overflow-y: auto; }
-        .dashboard-header { display: flex; gap: 20px; margin-bottom: 20px; }
-        .header-box { background: #3A3A5A; padding: 20px; border-radius: 10px; flex: 1; }
-        .header-box h3 { color: #8D99AE; }
-        
+        .toggle-container { display: flex; align-items: center; gap: 10px; }
+        .toggle-container label { font-size: 0.9em; }
+
+        .main-dashboard { flex: 1; padding: 25px; overflow-y: auto; }
+        .dashboard-header { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 20px; }
+        .header-box { flex: 1; padding: 15px; border-radius: 8px; text-align: center; transition: background-color 0.3s; }
+
+        .table-container { padding: 20px; border-radius: 10px; transition: background-color 0.3s; }
+        table { width: 100%; color: inherit; margin-top: 10px; border-collapse: collapse; }
+        table th, table td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+
         .filter-section { margin: 20px 0; color: #8D99AE; }
-        .filter-section select { padding: 5px; background-color: #3A3A5A; color: #D6D8E7; border: none; border-radius: 5px; }
+        .filter-section select { padding: 5px; background-color: inherit; color: inherit; border: 1px solid #ddd; border-radius: 5px; }
 
-        .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; }
-        table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
-        table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
-        .status-pending { color: #36A2EB; font-weight: bold; }
-        .status-acknowledged { color: #FF6384; font-weight: bold; }
-        .status-false-alarm { color: #FFCE56; font-weight: bold; }
-        .action-button {
-            background-color: #FF6384; /* Couleur du bouton Accusé de Réception */
-            color: white; /* Couleur du texte */
-            border: none; /* Pas de bordure */
-            padding: 10px 15px; /* Padding pour la taille */
-            border-radius: 5px; /* Coins arrondis */
-            cursor: pointer; /* Curseur pointeur au survol */
-            transition: background-color 0.3s; /* Transition lisse pour la couleur */
-            font-size: 14px; /* Taille de police */
-        }
-        .action-button.false-alarm {
-            background-color: #FFCE56; /* Couleur du bouton Fausse Alarme */
-        }
-        .action-button:hover {
-            opacity: 0.8; /* Légèrement estompé au survol */
-        }
-        .popup {
-            display: none; /* Caché par défaut */
-            position: fixed; /* Resté en place */
-            left: 0;
-            top: 0;
-            width: 100%; /* Largeur complète */
-            height: 100%; /* Hauteur complète */
-            background-color: rgba(0, 0, 0, 0.5); /* Fond noir avec opacité */
-            z-index: 999; /* En haut */
-        }
-        .popup-content {
-            background-color: #fefefe;
-            margin: 15% auto; /* 15% du haut et centré */
-            padding: 20px;
-            border: 1px solid #888;
-            width: 80%; /* Peut varier selon la taille de l'écran */
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: black;
-            text-decoration: none;
-            cursor: pointer;
-        }
+        .action-button { background-color: #FF6384; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; font-size: 14px; }
+        .action-button.false-alarm { background-color: #FFCE56; }
+        .action-button:hover { opacity: 0.8; }
+        .popup { display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 999; }
+        .popup-content { background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 60%; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
     </style>
 </head>
-<body>
+<body class="dark">
     <div class="dashboard-container">
         <!-- Barre latérale -->
         <aside class="sidebar">
@@ -185,6 +144,12 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </ul>
                 </nav>
             </div>
+
+            <div class="toggle-container">
+                <label for="theme-toggle">Mode Clair</label>
+                <input type="checkbox" id="theme-toggle">
+            </div>
+
             <div class="bottom-section">
                 <h3>Bienvenue !</h3>
                 <h4><?php echo htmlspecialchars($_SESSION['username']); ?></h4>
@@ -216,7 +181,6 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
 
-            <!-- Section des filtres avec une liste déroulante -->
             <div class="filter-section">
                 <label for="statusFilter">Filtrer par statut :</label>
                 <select id="statusFilter" onchange="filterStatus(this.value)">
@@ -227,7 +191,6 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </select>
             </div>
 
-            <!-- Tableau des relevés de gaz -->
             <div class="table-container">
                 <h3>Relevés de Gaz</h3>
                 <table>
@@ -273,8 +236,8 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     ?>
                                 </td>
                                 <td><?php echo $reading["actioned_by"]; ?></td>
-                                <td><?php echo $reading["actionbytimestamp"]; ?></td> <!-- Afficher le temps de réponse -->
-                                <td><?php echo $reading["comment"] ? $reading["comment"] : 'Aucun commentaire'; ?></td> <!-- Afficher le commentaire -->
+                                <td><?php echo $reading["actionbytimestamp"]; ?></td>
+                                <td><?php echo $reading["comment"] ? $reading["comment"] : 'Aucun commentaire'; ?></td>
                                 <td>
                                     <button class="action-button acknowledge-button" onclick="openPopup('<?php echo $reading['readingID']; ?>', 'acknowledge')">Accuser Réception</button> 
                                     <button class="action-button false-alarm-button" onclick="openPopup('<?php echo $reading['readingID']; ?>', 'false_alarm')">Fausse Alarme</button>
@@ -301,6 +264,11 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
 
     <script>
+        document.getElementById('theme-toggle').addEventListener('change', function() {
+            document.body.classList.toggle('light', this.checked);
+            document.body.classList.toggle('dark', !this.checked);
+        });
+
         function filterStatus(status) {
             const rows = document.querySelectorAll("#gasReadingsTable tr");
             rows.forEach(row => {
