@@ -124,7 +124,7 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .close:hover, .close:focus { color: black; text-decoration: none; cursor: pointer; }
     </style>
 </head>
-<body class="dark">
+<body class="light">
     <div class="dashboard-container">
         <!-- Barre latérale -->
         <aside class="sidebar">
@@ -265,8 +265,8 @@ $gas_readings = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script>
         document.getElementById('theme-toggle').addEventListener('change', function() {
-            document.body.classList.toggle('light', this.checked);
-            document.body.classList.toggle('dark', !this.checked);
+            document.body.classList.toggle('dark', this.checked);
+            document.body.classList.toggle('light', !this.checked);
         });
 
         function filterStatus(status) {

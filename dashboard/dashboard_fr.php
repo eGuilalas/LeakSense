@@ -70,7 +70,7 @@ if (!isset($_SESSION['userID'])) {
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="dark">
+<body class="light">
     <div class="dashboard-container">
         <aside class="sidebar">
             <div>
@@ -175,8 +175,8 @@ if (!isset($_SESSION['userID'])) {
 
     <script>
     document.getElementById('theme-toggle').addEventListener('change', function() {
-        document.body.classList.toggle('light', this.checked);
-        document.body.classList.toggle('dark', !this.checked);
+        document.body.classList.toggle('dark', this.checked);
+        document.body.classList.toggle('light', !this.checked);
     });
 
     const liveGasChartCtx = document.getElementById('livegasChart').getContext('2d');

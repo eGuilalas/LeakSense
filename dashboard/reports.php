@@ -109,32 +109,32 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Reports - Leaksense Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; background-color: #1E1E2D; color: #fff; display: flex; }
+        body { font-family: Arial, sans-serif; background-color: #f9f9f9; color: #333; display: flex; }
         .dashboard-container { display: flex; height: 100vh; width: 100%; }
-        .sidebar { background-color: #2B2D42; width: 220px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
-        .sidebar h2 { color: #8D99AE; font-size: 1.5em; margin-bottom: 20px; }
+        .sidebar { background-color: #e6e6e6; width: 220px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; }
+        .sidebar h2 { color: #555; font-size: 1.5em; margin-bottom: 20px; }
         .sidebar ul { list-style: none; padding-left: 0; }
         .sidebar li { margin-bottom: 15px; }
-        .sidebar a { text-decoration: none; color: #D6D8E7; font-size: 1em; display: block; padding: 10px; border-radius: 5px; transition: background-color 0.2s; }
-        .sidebar a:hover, .sidebar a.active { background-color: #F72585; color: #fff; }
+        .sidebar a { text-decoration: none; color: #333; font-size: 1em; display: block; padding: 10px; border-radius: 5px; transition: background-color 0.2s; }
+        .sidebar a:hover, .sidebar a.active { background-color: #4CAF50; color: #fff; }
         
         .main-dashboard { flex: 1; padding: 20px; overflow-y: auto; }
-        .filter-section { background: #3A3A5A; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .filter-section h3 { color: #8D99AE; margin-bottom: 15px; }
+        .filter-section { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #ddd; }
+        .filter-section h3 { color: #555; margin-bottom: 15px; }
         .filter-group { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-        .filter-group label { color: #D6D8E7; }
+        .filter-group label { color: #333; }
         .filter-group select, .filter-group input {
             padding: 5px;
-            background-color: #2B2D42;
-            color: #D6D8E7;
-            border: 1px solid #444;
+            background-color: #fff;
+            color: #333;
+            border: 1px solid #ccc;
             border-radius: 5px;
             outline: none;
         }
         .button-group { display: flex; gap: 10px; margin-top: 15px; }
         .button-group button, .button-group a {
             padding: 8px 12px;
-            background-color: #F72585;
+            background-color: #4CAF50;
             border: none;
             border-radius: 5px;
             color: #fff;
@@ -142,10 +142,10 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
             text-decoration: none;
             text-align: center;
         }
-        .button-group button:hover, .button-group a:hover { background-color: #FF4571; }
+        .button-group button:hover, .button-group a:hover { background-color: #45A049; }
 
-        .table-container { background: #3A3A5A; padding: 20px; border-radius: 10px; }
-        table { width: 100%; color: #D6D8E7; margin-top: 10px; border-collapse: collapse; }
+        .table-container { background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #ddd; }
+        table { width: 100%; color: #333; margin-top: 10px; border-collapse: collapse; }
         table th, table td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
         .status-pending { color: #FFA500; font-weight: bold; }
         .status-acknowledged { color: #36A2EB; font-weight: bold; }
@@ -153,13 +153,13 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         /* Bottom section styling */
         .bottom-section {
-            border-top: 1px solid #444;
+            border-top: 1px solid #ccc;
             padding-top: 20px;
-            color: #D6D8E7;
+            color: #555;
             text-align: left;
         }
-        .bottom-section h3, .bottom-section h5 { margin-bottom: 10px; color: #D6D8E7; }
-        .bottom-section a { color: #F72585; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        .bottom-section h3, .bottom-section h5 { margin-bottom: 10px; color: #555; }
+        .bottom-section a { color: #4CAF50; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
         .bottom-section a:hover { text-decoration: underline; }
     </style>
 </head>
@@ -184,7 +184,7 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </nav>
             </div>
             <div class="bottom-section">
-            <h3>Welcome!</h3>
+                <h3>Welcome!</h3>
                 <h3><?php echo htmlspecialchars($_SESSION['username']); ?></h3>
                 <h4>Role: <?php echo htmlspecialchars($_SESSION['userrole']); ?></h4>
             </div>
@@ -254,7 +254,6 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <table>
                     <thead>
                         <tr>
-                            <!-- <th>ID</th> -->
                             <th>Device ID</th>
                             <th>Gas Level (ppm)</th>
                             <th>Gas Detected</th>
@@ -268,7 +267,6 @@ $report_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <tbody>
                         <?php foreach ($report_data as $row): ?>
                             <tr>
-                                <!-- <td><?php echo $row["ID"]; ?></td> -->
                                 <td><?php echo $row["Device ID"]; ?></td>
                                 <td><?php echo $row["Gas Level"]; ?></td>
                                 <td><?php echo $row["Gas Detected"]; ?></td>

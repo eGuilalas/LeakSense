@@ -17,16 +17,6 @@ if (!isset($_SESSION['userID'])) {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: Arial, sans-serif; display: flex; transition: background-color 0.3s, color 0.3s; }
-        
-        /* Dark Mode */
-        body.dark { background-color: #1E1E2D; color: #fff; }
-        body.dark .sidebar { background-color: #2B2D42; color: #D6D8E7; }
-        body.dark .sidebar h2, body.dark .sidebar a { color: #D6D8E7; }
-        body.dark .sidebar a.active, body.dark .sidebar a:hover { background-color: #F72585; color: #fff; }
-        body.dark .header-box, body.dark .chart, body.dark .table-container { background: #3A3A5A; }
-        body.dark .status-detected { color: red; }
-        body.dark .status-not-detected { color: green; }
-        body.dark .bottom-section { color: #D6D8E7; }
 
         /* Light Mode */
         body.light { background-color: #f0f0f0; color: #333; }
@@ -37,6 +27,16 @@ if (!isset($_SESSION['userID'])) {
         body.light .status-detected { color: red; }
         body.light .status-not-detected { color: green; }
         body.light .bottom-section { color: #333; }
+
+        /* Dark Mode */
+        body.dark { background-color: #1E1E2D; color: #fff; }
+        body.dark .sidebar { background-color: #2B2D42; color: #D6D8E7; }
+        body.dark .sidebar h2, body.dark .sidebar a { color: #D6D8E7; }
+        body.dark .sidebar a.active, body.dark .sidebar a:hover { background-color: #F72585; color: #fff; }
+        body.dark .header-box, body.dark .chart, body.dark .table-container { background: #3A3A5A; }
+        body.dark .status-detected { color: red; }
+        body.dark .status-not-detected { color: green; }
+        body.dark .bottom-section { color: #D6D8E7; }
         
         /* General Styles */
         .dashboard-container { display: flex; height: 100vh; width: 100%; }
@@ -70,7 +70,7 @@ if (!isset($_SESSION['userID'])) {
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="dark">
+<body class="light">
     <div class="dashboard-container">
         <aside class="sidebar">
             <div>
@@ -91,7 +91,7 @@ if (!isset($_SESSION['userID'])) {
             </div>
             <!-- Toggle Switch -->
             <div class="toggle-container">
-                <label for="theme-toggle">Light Mode</label>
+                <label for="theme-toggle">Dark Mode</label>
                 <input type="checkbox" id="theme-toggle">
             </div>
             
@@ -175,8 +175,8 @@ if (!isset($_SESSION['userID'])) {
 
     <script>
     document.getElementById('theme-toggle').addEventListener('change', function() {
-        document.body.classList.toggle('light', this.checked);
-        document.body.classList.toggle('dark', !this.checked);
+        document.body.classList.toggle('dark', this.checked);
+        document.body.classList.toggle('light', !this.checked);
     });
 
     const liveGasChartCtx = document.getElementById('livegasChart').getContext('2d');

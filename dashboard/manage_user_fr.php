@@ -191,7 +191,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .bottom-section a { color: #F72585; text-decoration: none; font-weight: bold; }
     </style>
 </head>
-<body class="dark">
+<body class="light">
     <div class="dashboard-container">
         <!-- Barre latérale -->
         <aside class="sidebar">
@@ -325,8 +325,8 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script>
         document.getElementById('theme-toggle').addEventListener('change', function() {
-            document.body.classList.toggle('light', this.checked);
-            document.body.classList.toggle('dark', !this.checked);
+            document.body.classList.toggle('dark', this.checked);
+            document.body.classList.toggle('light', !this.checked);
         });
 
         function filterUsers() {
